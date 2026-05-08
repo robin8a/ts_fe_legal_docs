@@ -1,0 +1,32 @@
+{
+  "dev": {
+    "awscloudformation": {
+      "AuthRoleName": "amplify-tsbelegaldocsapi-dev-6ee97-authRole",
+      "UnauthRoleArn": "arn:aws:iam::879381245127:role/amplify-tsbelegaldocsapi-dev-6ee97-unauthRole",
+      "AuthRoleArn": "arn:aws:iam::879381245127:role/amplify-tsbelegaldocsapi-dev-6ee97-authRole",
+      "Region": "us-east-1",
+      "DeploymentBucketName": "amplify-tsbelegaldocsapi-dev-6ee97-deployment",
+      "UnauthRoleName": "amplify-tsbelegaldocsapi-dev-6ee97-unauthRole",
+      "StackName": "amplify-tsbelegaldocsapi-dev-6ee97",
+      "StackId": "arn:aws:cloudformation:us-east-1:879381245127:stack/amplify-tsbelegaldocsapi-dev-6ee97/3a896490-4b22-11f1-a2af-1e2f40805769",
+      "AmplifyAppId": "d1h0lpobqmskz4"
+    },
+    "categories": {
+      "auth": {
+        "tsbelegaldocsapia927c727": {
+          "allowUnauthenticatedIdentities": true,
+          "authRoleArn": "arn:aws:iam::879381245127:role/amplify-tsbeoraculoapi-dev-755cb-authRole",
+          "authRoleName": "amplify-tsbeoraculoapi-dev-755cb-authRole",
+          "identityPoolId": "us-east-1:07a6df03-fc6e-4f45-b979-b84f17b27fc6",
+          "identityPoolName": "tsbeoraculoapi7e5484f0_identitypool_7e5484f0__dev",
+          "nativeClientId": "6u3umismpiv1rb5j5peq9v8j7u",
+          "unauthRoleArn": "arn:aws:iam::879381245127:role/amplify-tsbeoraculoapi-dev-755cb-unauthRole",
+          "unauthRoleName": "amplify-tsbeoraculoapi-dev-755cb-unauthRole",
+          "userPoolId": "us-east-1_chqNtZEAP",
+          "userPoolName": "tsbeoraculoapi7e5484f0_userpool_7e5484f0-dev",
+          "webClientId": "5gu39h1sr0hbcsj4krd9sti5cn"
+        }
+      }
+    }
+  }
+}
