@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import { Container, Card, Form, Button, Alert } from 'react-bootstrap';
-import { useNavigate } from 'react-router-dom';
-import { API, graphqlOperation } from 'aws-amplify';
-import { graphqlQuery, graphqlMutation } from '../../../utils/graphqlClient';
+import { Form, Button, Alert, Spinner, Row, Col } from 'react-bootstrap';
+import { Link, useNavigate } from 'react-router-dom';
+import { graphqlMutation } from '../../../utils/graphqlClient';
 import { createOrder } from '../../../graphql/mutations';
+import { IconArrowLeft } from '../icons/AdminIcons';
 
 const OrderCreate = () => {
   const navigate = useNavigate();
@@ -19,11 +19,8 @@ const OrderCreate = () => {
   const [loading, setLoading] = useState(false);
 
   const handleChange = (e) => {
-    const value = e.target.type === 'number' ? parseInt(e.target.value) || 0 : e.target.value;
-    setFormData({
-      ...formData,
-      [e.target.name]: value,
-    });
+    const value = e.target.type === 'number' ? parseInt(e.target.value, 10) || 0 : e.target.value;
+    setFormData({ ...formData, [e.target.name]: value });
     setError('');
   };
 
@@ -31,115 +28,128 @@ const OrderCreate = () => {
     e.preventDefault();
     setLoading(true);
     setError('');
-
     try {
-      await graphqlMutation(createOrder, {
-          input: formData,
-        });
+      await graphqlMutation(createOrder, { input: formData });
       navigate('/admin/orders');
     } catch (err) {
       console.error('Error creating order:', err);
-      setError('Error creating order: ' + (err.message || 'Unknown error'));
+      setError(err.message || 'No se pudo crear el pedido.');
       setLoading(false);
     }
   };
 
   return (
-    <Container className="mt-4">
-      <Card>
-        <Card.Header>
-          <h3>Create Order</h3>
-        </Card.Header>
-        <Card.Body>
-          {error && <Alert variant="danger">{error}</Alert>}
-          <Form onSubmit={handleSubmit}>
-            <Form.Group className="mb-3">
-              <Form.Label>Customer ID *</Form.Label>
-              <Form.Control
-                type="text"
-                name="customerID"
-                value={formData.customerID}
-                onChange={handleChange}
-                required
-                placeholder="Enter customer ID"
-              />
-            </Form.Group>
+    <div className="admin-form-page">
+      <Link to="/admin/orders" className="admin-back-link">
+        <IconArrowLeft />
+        Volver a pedidos
+      </Link>
 
-            <Form.Group className="mb-3">
-              <Form.Label>Account Representative ID *</Form.Label>
-              <Form.Control
-                type="text"
-                name="accountRepresentativeID"
-                value={formData.accountRepresentativeID}
-                onChange={handleChange}
-                required
-                placeholder="Enter account representative ID"
-              />
-            </Form.Group>
+      <h1 className="admin-page-title">Nuevo pedido</h1>
+      <p className="admin-page-desc">
+        Alta manual de un pedido: cliente, representante, producto, estado, importe y fecha.
+      </p>
 
-            <Form.Group className="mb-3">
-              <Form.Label>Product ID *</Form.Label>
-              <Form.Control
-                type="text"
-                name="productID"
-                value={formData.productID}
-                onChange={handleChange}
-                required
-                placeholder="Enter product ID"
-              />
-            </Form.Group>
+      {error ? <Alert variant="danger" className="mt-3">{error}</Alert> : null}
 
-            <Form.Group className="mb-3">
-              <Form.Label>Status *</Form.Label>
-              <Form.Control
-                type="text"
-                name="status"
-                value={formData.status}
-                onChange={handleChange}
-                required
-                placeholder="Enter status"
-              />
-            </Form.Group>
+      <Form className="mt-4" onSubmit={handleSubmit} noValidate>
+        <div className="admin-form-card">
+          <div className="admin-form-card-body admin-form-control-like">
+            <Row className="g-4 mb-0">
+              <Col md={6}>
+                <Form.Group controlId="order-customer">
+                  <Form.Label className="small fw-medium text-body-secondary">ID cliente *</Form.Label>
+                  <Form.Control
+                    type="text"
+                    name="customerID"
+                    value={formData.customerID}
+                    onChange={handleChange}
+                    required
+                    placeholder="Identificador del cliente"
+                  />
+                </Form.Group>
+              </Col>
+              <Col md={6}>
+                <Form.Group controlId="order-rep">
+                  <Form.Label className="small fw-medium text-body-secondary">ID representante *</Form.Label>
+                  <Form.Control
+                    type="text"
+                    name="accountRepresentativeID"
+                    value={formData.accountRepresentativeID}
+                    onChange={handleChange}
+                    required
+                    placeholder="Cuenta o usuario representante"
+                  />
+                </Form.Group>
+              </Col>
+              <Col md={6}>
+                <Form.Group controlId="order-product">
+                  <Form.Label className="small fw-medium text-body-secondary">ID producto *</Form.Label>
+                  <Form.Control
+                    type="text"
+                    name="productID"
+                    value={formData.productID}
+                    onChange={handleChange}
+                    required
+                    placeholder="SKU o ID de producto"
+                  />
+                </Form.Group>
+              </Col>
+              <Col md={6}>
+                <Form.Group controlId="order-status">
+                  <Form.Label className="small fw-medium text-body-secondary">Estado *</Form.Label>
+                  <Form.Control
+                    type="text"
+                    name="status"
+                    value={formData.status}
+                    onChange={handleChange}
+                    required
+                    placeholder="Ej. pending, completed"
+                  />
+                </Form.Group>
+              </Col>
+              <Col md={6}>
+                <Form.Group controlId="order-amount">
+                  <Form.Label className="small fw-medium text-body-secondary">Importe *</Form.Label>
+                  <Form.Control
+                    type="number"
+                    name="amount"
+                    value={formData.amount}
+                    onChange={handleChange}
+                    required
+                    min={0}
+                    step={1}
+                  />
+                </Form.Group>
+              </Col>
+              <Col md={6}>
+                <Form.Group controlId="order-date">
+                  <Form.Label className="small fw-medium text-body-secondary">Fecha *</Form.Label>
+                  <Form.Control type="date" name="date" value={formData.date} onChange={handleChange} required />
+                </Form.Group>
+              </Col>
+            </Row>
+          </div>
 
-            <Form.Group className="mb-3">
-              <Form.Label>Amount *</Form.Label>
-              <Form.Control
-                type="number"
-                name="amount"
-                value={formData.amount}
-                onChange={handleChange}
-                required
-                min="0"
-              />
-            </Form.Group>
-
-            <Form.Group className="mb-3">
-              <Form.Label>Date *</Form.Label>
-              <Form.Control
-                type="date"
-                name="date"
-                value={formData.date}
-                onChange={handleChange}
-                required
-              />
-            </Form.Group>
-
-            <Button variant="primary" type="submit" disabled={loading}>
-              {loading ? 'Creating...' : 'Create'}
+          <div className="admin-form-card-footer">
+            <Button type="button" variant="outline-secondary" onClick={() => navigate('/admin/orders')}>
+              Cancelar
             </Button>
-            <Button
-              variant="secondary"
-              className="ms-2"
-              onClick={() => navigate('/admin/orders')}
-            >
-              Cancel
+            <Button type="submit" variant="dark" className="shadow-sm" disabled={loading}>
+              {loading ? (
+                <>
+                  <Spinner animation="border" size="sm" className="me-2" aria-hidden />
+                  Creando…
+                </>
+              ) : (
+                'Crear pedido'
+              )}
             </Button>
-          </Form>
-        </Card.Body>
-      </Card>
-    </Container>
+          </div>
+        </div>
+      </Form>
+    </div>
   );
 };
 
 export default OrderCreate;
-

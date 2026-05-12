@@ -1,22 +1,18 @@
 import React, { useState } from 'react';
-import { Container, Card, Form, Button, Alert } from 'react-bootstrap';
-import { useNavigate } from 'react-router-dom';
+import { Form, Button, Alert, Spinner } from 'react-bootstrap';
+import { Link, useNavigate } from 'react-router-dom';
 import { graphqlMutation } from '../../../utils/graphqlClient';
 import { createLegalApp } from '../../../graphql/mutations';
+import { IconArrowLeft } from '../icons/AdminIcons';
 
 const LegalAppCreate = () => {
   const navigate = useNavigate();
-  const [formData, setFormData] = useState({
-    name: '',
-  });
+  const [formData, setFormData] = useState({ name: '' });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
   const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
+    setFormData({ ...formData, [e.target.name]: e.target.value });
     setError('');
   };
 
@@ -24,56 +20,66 @@ const LegalAppCreate = () => {
     e.preventDefault();
     setLoading(true);
     setError('');
-
     try {
-      await graphqlMutation(createLegalApp, {
-        input: formData,
-      });
+      await graphqlMutation(createLegalApp, { input: formData });
       navigate('/admin/legal-apps');
     } catch (err) {
       console.error('Error creating legal app:', err);
-      setError('Error creating legal app: ' + (err.message || 'Unknown error'));
+      setError(err.message || 'No se pudo crear la aplicación.');
       setLoading(false);
     }
   };
 
   return (
-    <Container className="mt-4">
-      <Card>
-        <Card.Header>
-          <h3>Create Legal App</h3>
-        </Card.Header>
-        <Card.Body>
-          {error && <Alert variant="danger">{error}</Alert>}
-          <Form onSubmit={handleSubmit}>
-            <Form.Group className="mb-3">
-              <Form.Label>Name *</Form.Label>
+    <div className="admin-form-page">
+      <Link to="/admin/legal-apps" className="admin-back-link">
+        <IconArrowLeft />
+        Volver a aplicaciones legales
+      </Link>
+
+      <h1 className="admin-page-title">Nueva aplicación legal</h1>
+      <p className="admin-page-desc">
+        Registra un espacio de trabajo para agrupar usuarios, documentos y pedidos.
+      </p>
+
+      {error ? <Alert variant="danger" className="mt-3">{error}</Alert> : null}
+
+      <Form className="mt-4" onSubmit={handleSubmit} noValidate>
+        <div className="admin-form-card">
+          <div className="admin-form-card-body admin-form-control-like">
+            <Form.Group className="mb-0" controlId="legal-app-name">
+              <Form.Label className="small fw-medium text-body-secondary">Nombre *</Form.Label>
               <Form.Control
                 type="text"
                 name="name"
                 value={formData.name}
                 onChange={handleChange}
                 required
-                placeholder="Enter legal app name"
+                placeholder="Ej. App cumplimiento 2025"
+                autoComplete="organization"
               />
             </Form.Group>
+          </div>
 
-            <Button variant="primary" type="submit" disabled={loading}>
-              {loading ? 'Creating...' : 'Create'}
+          <div className="admin-form-card-footer">
+            <Button type="button" variant="outline-secondary" onClick={() => navigate('/admin/legal-apps')}>
+              Cancelar
             </Button>
-            <Button
-              variant="secondary"
-              className="ms-2"
-              onClick={() => navigate('/admin/legal-apps')}
-            >
-              Cancel
+            <Button type="submit" variant="dark" className="shadow-sm" disabled={loading}>
+              {loading ? (
+                <>
+                  <Spinner animation="border" size="sm" className="me-2" aria-hidden />
+                  Creando…
+                </>
+              ) : (
+                'Crear aplicación'
+              )}
             </Button>
-          </Form>
-        </Card.Body>
-      </Card>
-    </Container>
+          </div>
+        </div>
+      </Form>
+    </div>
   );
 };
 
 export default LegalAppCreate;
-

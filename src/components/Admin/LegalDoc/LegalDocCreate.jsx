@@ -1,9 +1,22 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Card, Form, Button, Alert } from 'react-bootstrap';
-import { useNavigate } from 'react-router-dom';
+import { Form, Button, Alert, Row, Col, InputGroup, Spinner } from 'react-bootstrap';
+import { Link, useNavigate } from 'react-router-dom';
 import { graphqlQuery, graphqlMutation } from '../../../utils/graphqlClient';
 import { listLegalDocTypes, listLegalDocs } from '../../../graphql/queries';
 import { createLegalDoc } from '../../../graphql/mutations';
+import { IconArrowLeft, IconChevronDown, IconSearch, IconTrash } from '../icons/AdminIcons';
+
+const buildUrlFromSuffix = (suffix) => {
+  const trimmed = (suffix || '').trim();
+  if (!trimmed) return '';
+  if (/^https?:\/\//i.test(trimmed)) return trimmed;
+  return `https://${trimmed.replace(/^\/+/, '')}`;
+};
+
+const urlSuffixFromFull = (full) => {
+  if (!full) return '';
+  return full.replace(/^https?:\/\//i, '');
+};
 
 const LegalDocCreate = () => {
   const navigate = useNavigate();
@@ -33,8 +46,8 @@ const LegalDocCreate = () => {
       setDocTypes(docTypesResult.data.listLegalDocTypes.items);
       setParentDocs(docsResult.data.listLegalDocs.items);
       setLoadingRefs(false);
-    } catch (error) {
-      console.error('Error loading references:', error);
+    } catch (err) {
+      console.error('Error loading references:', err);
       setLoadingRefs(false);
     }
   };
@@ -44,6 +57,15 @@ const LegalDocCreate = () => {
     setFormData({
       ...formData,
       [e.target.name]: value,
+    });
+    setError('');
+  };
+
+  const handleUrlSuffixChange = (e) => {
+    const suffix = e.target.value;
+    setFormData({
+      ...formData,
+      url: buildUrlFromSuffix(suffix),
     });
     setError('');
   };
@@ -75,102 +97,184 @@ const LegalDocCreate = () => {
     }
   };
 
+  const handleDiscard = () => {
+    navigate('/admin/legal-docs');
+  };
+
   if (loadingRefs) {
-    return <Container className="mt-4">Loading...</Container>;
+    return (
+      <div className="d-flex justify-content-center align-items-center py-5" role="status">
+        <Spinner animation="border" />
+        <span className="visually-hidden">Loading…</span>
+      </div>
+    );
   }
 
+  const urlSuffix = urlSuffixFromFull(formData.url);
+
   return (
-    <Container className="mt-4">
-      <Card>
-        <Card.Header>
-          <h3>Create Legal Document</h3>
-        </Card.Header>
-        <Card.Body>
-          {error && <Alert variant="danger">{error}</Alert>}
-          <Form onSubmit={handleSubmit}>
-            <Form.Group className="mb-3">
-              <Form.Label>Version *</Form.Label>
-              <Form.Control
-                type="text"
-                name="version"
-                value={formData.version}
-                onChange={handleChange}
-                required
-                placeholder="Enter version"
-              />
+    <div className="admin-form-page">
+      <Link to="/admin/legal-docs" className="admin-back-link">
+        <IconArrowLeft />
+        Back to Legal Docs
+      </Link>
+
+      <h1 className="admin-page-title">Create Legal Document</h1>
+      <p className="admin-page-desc">
+        Add a new document version and link it to its respective type and parent.
+      </p>
+
+      {error ? <Alert variant="danger" className="mt-3">{error}</Alert> : null}
+
+      <Form className="mt-4" onSubmit={handleSubmit} noValidate>
+        <div className="admin-form-card">
+          <div className="admin-form-card-body">
+            <Row className="g-4 mb-4">
+              <Col md={6}>
+                <Form.Group controlId="legal-doc-version">
+                  <Form.Label className="small fw-medium text-body-secondary">Version Name</Form.Label>
+                  <Form.Control
+                    className="shadow-sm"
+                    type="text"
+                    name="version"
+                    value={formData.version}
+                    onChange={handleChange}
+                    required
+                    placeholder="e.g. Terms of Service v1.0"
+                    autoComplete="off"
+                  />
+                </Form.Group>
+              </Col>
+              <Col md={6}>
+                <Form.Group controlId="legal-doc-type">
+                  <Form.Label className="small fw-medium text-body-secondary">Document Type</Form.Label>
+                  <div className="position-relative">
+                    <Form.Select
+                      name="legalDocTypeLegalDocsId"
+                      value={formData.legalDocTypeLegalDocsId}
+                      onChange={handleChange}
+                      required
+                      className="shadow-sm pe-5"
+                      style={{ appearance: 'none', WebkitAppearance: 'none' }}
+                      aria-label="Document type"
+                    >
+                      <option value="">Select type…</option>
+                      {docTypes.map((type) => (
+                        <option key={type.id} value={type.id}>
+                          {type.name}
+                        </option>
+                      ))}
+                    </Form.Select>
+                    <span
+                      className="position-absolute top-50 end-0 translate-middle-y pe-3 text-secondary pointer-events-none"
+                      aria-hidden="true"
+                    >
+                      <IconChevronDown />
+                    </span>
+                  </div>
+                </Form.Group>
+              </Col>
+            </Row>
+
+            <Form.Group className="mb-4" controlId="legal-doc-url">
+              <Form.Label className="small fw-medium text-body-secondary">Document URL</Form.Label>
+              <InputGroup className="shadow-sm">
+                <InputGroup.Text className="text-secondary bg-white">https://</InputGroup.Text>
+                <Form.Control
+                  value={urlSuffix}
+                  onChange={handleUrlSuffixChange}
+                  required
+                  placeholder="example.com/legal/document.pdf"
+                  aria-label="URL without protocol; https will be added automatically"
+                  autoComplete="url"
+                />
+              </InputGroup>
             </Form.Group>
 
-            <Form.Group className="mb-3">
+            <Form.Group className="mb-4" controlId="legal-doc-parent">
+              <div className="admin-form-label-row mb-2">
+                <Form.Label className="small fw-medium text-body-secondary mb-0">Parent Document</Form.Label>
+                <span className="text-muted small fw-normal">Optional</span>
+              </div>
+              <div className="position-relative">
+                <Form.Select
+                  name="legalDocLegalDocChildrenId"
+                  value={formData.legalDocLegalDocChildrenId}
+                  onChange={handleChange}
+                  className="shadow-sm pe-5"
+                  style={{ appearance: 'none', WebkitAppearance: 'none' }}
+                  aria-label="Parent document"
+                >
+                  <option value="">Search for an existing document…</option>
+                  {parentDocs.map((doc) => (
+                    <option key={doc.id} value={doc.id}>
+                      {doc.version} — {doc.id}
+                    </option>
+                  ))}
+                </Form.Select>
+                <span
+                  className="position-absolute top-50 end-0 translate-middle-y pe-3 text-secondary pointer-events-none"
+                  aria-hidden="true"
+                >
+                  <IconSearch />
+                </span>
+              </div>
+              <Form.Text className="text-muted">
+                Link this version to a previous overarching document if it acts as an addendum.
+              </Form.Text>
+            </Form.Group>
+
+            <div className="admin-active-row">
               <Form.Check
                 type="checkbox"
                 name="isActive"
-                label="Is Active"
+                id="legal-doc-active"
                 checked={formData.isActive}
                 onChange={handleChange}
+                label={
+                  <span>
+                    <span className="small fw-medium text-body-secondary d-block mb-1">Set as Active Document</span>
+                    <span className="text-muted small d-block">
+                      Marking this as active will supersede any previous versions of this type.
+                    </span>
+                  </span>
+                }
               />
-            </Form.Group>
+            </div>
+          </div>
 
-            <Form.Group className="mb-3">
-              <Form.Label>URL *</Form.Label>
-              <Form.Control
-                type="url"
-                name="url"
-                value={formData.url}
-                onChange={handleChange}
-                required
-                placeholder="https://example.com/document.pdf"
-              />
-            </Form.Group>
-
-            <Form.Group className="mb-3">
-              <Form.Label>Document Type *</Form.Label>
-              <Form.Select
-                name="legalDocTypeLegalDocsId"
-                value={formData.legalDocTypeLegalDocsId}
-                onChange={handleChange}
-                required
-              >
-                <option value="">Select a document type</option>
-                {docTypes.map((type) => (
-                  <option key={type.id} value={type.id}>
-                    {type.name}
-                  </option>
-                ))}
-              </Form.Select>
-            </Form.Group>
-
-            <Form.Group className="mb-3">
-              <Form.Label>Parent Document</Form.Label>
-              <Form.Select
-                name="legalDocLegalDocChildrenId"
-                value={formData.legalDocLegalDocChildrenId}
-                onChange={handleChange}
-              >
-                <option value="">None</option>
-                {parentDocs.map((doc) => (
-                  <option key={doc.id} value={doc.id}>
-                    {doc.version} - {doc.id}
-                  </option>
-                ))}
-              </Form.Select>
-            </Form.Group>
-
-            <Button variant="primary" type="submit" disabled={loading}>
-              {loading ? 'Creating...' : 'Create'}
-            </Button>
+          <div className="admin-form-card-footer">
             <Button
-              variant="secondary"
-              className="ms-2"
-              onClick={() => navigate('/admin/legal-docs')}
+              type="button"
+              variant="danger"
+              className="d-inline-flex align-items-center gap-2 shadow-sm"
+              onClick={handleDiscard}
             >
-              Cancel
+              <IconTrash />
+              Discard
             </Button>
-          </Form>
-        </Card.Body>
-      </Card>
-    </Container>
+            <div className="d-flex flex-wrap align-items-center gap-2 ms-md-auto">
+              <Button
+                type="button"
+                variant="outline-secondary"
+                disabled
+                title="Draft saving is not configured in the API yet"
+                aria-describedby="save-draft-hint"
+              >
+                Save Draft
+              </Button>
+              <span id="save-draft-hint" className="visually-hidden">
+                Not available until backend supports drafts
+              </span>
+              <Button type="submit" variant="dark" className="shadow-sm" disabled={loading}>
+                {loading ? 'Publishing…' : 'Publish Document'}
+              </Button>
+            </div>
+          </div>
+        </div>
+      </Form>
+    </div>
   );
 };
 
 export default LegalDocCreate;
-

@@ -1,110 +1,179 @@
-import React, { useState, useEffect } from 'react';
-import { Container, Table, Button, Card } from 'react-bootstrap';
+import React, { useState, useEffect, useCallback } from 'react';
+import { Button, Spinner } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
-import { API, graphqlOperation } from 'aws-amplify';
 import { graphqlQuery, graphqlMutation } from '../../../utils/graphqlClient';
 import { listLegalDocRecords } from '../../../graphql/queries';
 import { deleteLegalDocRecord } from '../../../graphql/mutations';
+import { IconEdit2, IconTrash, IconCheckSquare, IconPlus, IconRefresh } from '../icons/AdminIcons';
+import { formatDateShort, formatAwsTimestamp, shortId } from '../../../utils/adminListFormat';
 
 const LegalDocRecordList = () => {
   const [records, setRecords] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
 
-  useEffect(() => {
-    loadRecords();
-  }, []);
-
-  const loadRecords = async () => {
+  const fetchRecords = useCallback(async ({ silent } = {}) => {
+    if (silent) setRefreshing(true);
+    else setLoading(true);
     try {
       const result = await graphqlQuery(listLegalDocRecords);
       setRecords(result.data.listLegalDocRecords.items);
-      setLoading(false);
     } catch (error) {
       console.error('Error loading records:', error);
-      setLoading(false);
+    } finally {
+      if (silent) setRefreshing(false);
+      else setLoading(false);
     }
+  }, []);
+
+  useEffect(() => {
+    fetchRecords({ silent: false });
+  }, [fetchRecords]);
+
+  const handleRefresh = () => {
+    fetchRecords({ silent: true });
   };
 
   const handleDelete = async (id) => {
-    if (window.confirm('Are you sure you want to delete this record?')) {
+    if (window.confirm('¿Eliminar este registro de documento? Esta acción no se puede deshacer.')) {
       try {
-        await API.graphql(graphqlOperation(deleteLegalDocRecord, { input: { id } }));
-        loadRecords();
+        await graphqlMutation(deleteLegalDocRecord, { input: { id } });
+        fetchRecords({ silent: true });
       } catch (error) {
         console.error('Error deleting record:', error);
-        alert('Error deleting record');
+        alert('No se pudo eliminar el registro.');
       }
     }
   };
 
+  const userLabel = (record) => record.user?.name || shortId(record.userLegalDocRecordsId);
+  const docLabel = (record) => record.legalDoc?.version || shortId(record.legalDocLegalDocRecordsId);
+
   if (loading) {
-    return <Container className="mt-4">Loading...</Container>;
+    return (
+      <div className="d-flex justify-content-center py-5" role="status">
+        <Spinner animation="border" />
+        <span className="visually-hidden">Cargando…</span>
+      </div>
+    );
   }
 
   return (
-    <Container className="mt-4">
-      <Card>
-        <Card.Header className="d-flex justify-content-between align-items-center">
-          <h3>Legal Document Records</h3>
-          <Button as={Link} to="/admin/legal-doc-records/create" variant="primary">
-            Create New
-          </Button>
-        </Card.Header>
-        <Card.Body>
-          <Table striped bordered hover responsive>
+    <div className="admin-data-panel position-relative">
+      {refreshing ? (
+        <div
+          className="position-absolute top-0 end-0 m-2 d-flex align-items-center gap-1 small text-muted"
+          role="status"
+          aria-live="polite"
+        >
+          <Spinner animation="border" size="sm" />
+          <span className="visually-hidden">Actualizando lista</span>
+        </div>
+      ) : null}
+
+      <div className="admin-data-panel-toolbar">
+        <div className="d-flex align-items-center gap-2 flex-wrap">
+          <span className="fw-semibold text-body">Registros firmados</span>
+          <span className="admin-data-count-pill" aria-label={`${records.length} registros`}>
+            {records.length}
+          </span>
+        </div>
+        <Button
+          type="button"
+          variant="outline-secondary"
+          size="sm"
+          className="d-inline-flex align-items-center gap-2"
+          onClick={handleRefresh}
+          disabled={refreshing}
+          aria-label="Actualizar lista"
+        >
+          <IconRefresh />
+          Actualizar
+        </Button>
+      </div>
+
+      {records.length > 0 ? (
+        <div className="table-responsive">
+          <table className="admin-data-table">
             <thead>
               <tr>
                 <th>ID</th>
-                <th>Sign</th>
-                <th>Legal Sign Date</th>
-                <th>User ID</th>
-                <th>Legal Doc ID</th>
-                <th>Created At</th>
-                <th>Actions</th>
+                <th>Firma</th>
+                <th>Fecha firma</th>
+                <th>Usuario</th>
+                <th>Documento</th>
+                <th>Creado</th>
+                <th className="text-end">Acciones</th>
               </tr>
             </thead>
             <tbody>
-              {records.length === 0 ? (
-                <tr>
-                  <td colSpan="7" className="text-center">No records found</td>
-                </tr>
-              ) : (
-                records.map((record) => (
-                  <tr key={record.id}>
-                    <td>{record.id}</td>
-                    <td>{record.sign}</td>
-                    <td>{new Date(record.legalSignDate * 1000).toLocaleString()}</td>
-                    <td>{record.userLegalDocRecordsId || 'N/A'}</td>
-                    <td>{record.legalDocLegalDocRecordsId || 'N/A'}</td>
-                    <td>{new Date(record.createdAt).toLocaleString()}</td>
-                    <td>
-                      <Button
-                        as={Link}
+              {records.map((record) => (
+                <tr key={record.id}>
+                  <td>
+                    <span className="admin-orders-mono text-muted small" title={record.id}>
+                      {shortId(record.id)}
+                    </span>
+                  </td>
+                  <td>
+                    <span className="fw-medium">{record.sign}</span>
+                  </td>
+                  <td className="text-muted">{formatAwsTimestamp(record.legalSignDate)}</td>
+                  <td>
+                    <span className="admin-pill">{userLabel(record)}</span>
+                  </td>
+                  <td>
+                    <span className="admin-pill">{docLabel(record)}</span>
+                  </td>
+                  <td className="text-muted">{formatDateShort(record.createdAt)}</td>
+                  <td>
+                    <div className="admin-table-actions">
+                      <Link
                         to={`/admin/legal-doc-records/${record.id}/edit`}
-                        variant="outline-primary"
-                        size="sm"
-                        className="me-2"
+                        className="admin-icon-btn"
+                        aria-label="Editar registro"
                       >
-                        Edit
-                      </Button>
-                      <Button
-                        variant="outline-danger"
-                        size="sm"
+                        <IconEdit2 />
+                      </Link>
+                      <button
+                        type="button"
+                        className="admin-icon-btn danger"
                         onClick={() => handleDelete(record.id)}
+                        aria-label="Eliminar registro"
                       >
-                        Delete
-                      </Button>
-                    </td>
-                  </tr>
-                ))
-              )}
+                        <IconTrash />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
             </tbody>
-          </Table>
-        </Card.Body>
-      </Card>
-    </Container>
+          </table>
+        </div>
+      ) : null}
+
+      {records.length === 0 ? (
+        <div className="admin-empty-block">
+          <div className="admin-empty-icon-wrap">
+            <IconCheckSquare />
+          </div>
+          <h2 className="h5 fw-semibold mb-2">No hay registros de documento</h2>
+          <p className="text-muted small mb-4 mx-auto admin-empty-copy">
+            Los registros vinculan una firma con un usuario y una versión concreta del documento legal.
+          </p>
+          <Button
+            as={Link}
+            to="/admin/legal-doc-records/create"
+            variant="outline-secondary"
+            size="sm"
+            className="d-inline-flex align-items-center gap-2"
+          >
+            <IconPlus />
+            Nuevo registro
+          </Button>
+        </div>
+      ) : null}
+    </div>
   );
 };
 
 export default LegalDocRecordList;
-

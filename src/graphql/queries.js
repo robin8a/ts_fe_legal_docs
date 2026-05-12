@@ -71,6 +71,11 @@ export const listUsers = /* GraphQL */ `
         createdAt
         updatedAt
         legalAppUsersId
+        legalApp {
+          id
+          name
+          __typename
+        }
         __typename
       }
       nextToken
@@ -175,6 +180,16 @@ export const listLegalDocs = /* GraphQL */ `
         updatedAt
         legalDocTypeLegalDocsId
         legalDocLegalDocChildrenId
+        legalDocType {
+          id
+          name
+          __typename
+        }
+        legalDocParentID {
+          id
+          version
+          __typename
+        }
         __typename
       }
       nextToken
@@ -230,6 +245,16 @@ export const listLegalDocRecords = /* GraphQL */ `
         updatedAt
         userLegalDocRecordsId
         legalDocLegalDocRecordsId
+        user {
+          id
+          name
+          __typename
+        }
+        legalDoc {
+          id
+          version
+          __typename
+        }
         __typename
       }
       nextToken
