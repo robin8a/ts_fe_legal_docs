@@ -2,10 +2,31 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Button, Spinner } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
 import { graphqlQuery, graphqlMutation } from '../../../utils/graphqlClient';
-import { listLegalDocRecords } from '../../../graphql/queries';
-import { deleteLegalDocRecord } from '../../../graphql/mutations';
+import { listLegalDocRecords, deleteLegalDocRecord } from '../../../graphql_custom';
 import { IconEdit2, IconTrash, IconCheckSquare, IconPlus, IconRefresh } from '../icons/AdminIcons';
 import { formatDateShort, formatAwsTimestamp, shortId } from '../../../utils/adminListFormat';
+
+const userLegalAppCell = (record) => {
+  const ula = record.userLegalApp;
+  if (!ula) {
+    return <span className="text-muted">—</span>;
+  }
+  const userName = ula.user?.name;
+  const appName = ula.legalApp?.name;
+  if (!userName && !appName) {
+    return (
+      <span className="admin-orders-mono text-muted small">
+        {shortId(record.userLegalAppLegalDocRecordsId)}
+      </span>
+    );
+  }
+  return (
+    <div className="small">
+      <div className="fw-medium">{userName ?? '—'}</div>
+      <div className="text-muted">{appName ?? '—'}</div>
+    </div>
+  );
+};
 
 const LegalDocRecordList = () => {
   const [records, setRecords] = useState([]);
@@ -46,7 +67,6 @@ const LegalDocRecordList = () => {
     }
   };
 
-  const userLabel = (record) => record.user?.name || shortId(record.userLegalDocRecordsId);
   const docLabel = (record) => record.legalDoc?.version || shortId(record.legalDocLegalDocRecordsId);
 
   if (loading) {
@@ -100,7 +120,7 @@ const LegalDocRecordList = () => {
                 <th>ID</th>
                 <th>Firma</th>
                 <th>Fecha firma</th>
-                <th>Usuario</th>
+                <th>Usuario en app</th>
                 <th>Documento</th>
                 <th>Creado</th>
                 <th className="text-end">Acciones</th>
@@ -118,9 +138,7 @@ const LegalDocRecordList = () => {
                     <span className="fw-medium">{record.sign}</span>
                   </td>
                   <td className="text-muted">{formatAwsTimestamp(record.legalSignDate)}</td>
-                  <td>
-                    <span className="admin-pill">{userLabel(record)}</span>
-                  </td>
+                  <td>{userLegalAppCell(record)}</td>
                   <td>
                     <span className="admin-pill">{docLabel(record)}</span>
                   </td>
@@ -158,7 +176,7 @@ const LegalDocRecordList = () => {
           </div>
           <h2 className="h5 fw-semibold mb-2">No hay registros de documento</h2>
           <p className="text-muted small mb-4 mx-auto admin-empty-copy">
-            Los registros vinculan una firma con un usuario y una versión concreta del documento legal.
+            Los registros vinculan una firma con un usuario en aplicación y una versión concreta del documento legal.
           </p>
           <Button
             as={Link}

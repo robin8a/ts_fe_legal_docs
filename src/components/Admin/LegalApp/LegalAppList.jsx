@@ -2,8 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Button, Spinner } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
 import { graphqlQuery, graphqlMutation } from '../../../utils/graphqlClient';
-import { listLegalApps } from '../../../graphql/queries';
-import { deleteLegalApp } from '../../../graphql/mutations';
+import { listLegalApps, deleteLegalApp } from '../../../graphql_custom';
 import { IconEdit2, IconTrash, IconLayoutGrid, IconPlus, IconRefresh } from '../icons/AdminIcons';
 import { formatDateShort, shortId } from '../../../utils/adminListFormat';
 
@@ -96,6 +95,7 @@ const LegalAppList = () => {
               <tr>
                 <th>ID</th>
                 <th>Nombre</th>
+                <th>Usuarios</th>
                 <th>Creado</th>
                 <th>Actualizado</th>
                 <th className="text-end">Acciones</th>
@@ -111,6 +111,11 @@ const LegalAppList = () => {
                   </td>
                   <td>
                     <div className="fw-medium">{app.name}</div>
+                  </td>
+                  <td>
+                    <span className="admin-data-count-pill">
+                      {app.userLegalApps?.items?.length ?? 0}
+                    </span>
                   </td>
                   <td className="text-muted">{formatDateShort(app.createdAt)}</td>
                   <td className="text-muted">{formatDateShort(app.updatedAt)}</td>
@@ -147,7 +152,7 @@ const LegalAppList = () => {
           </div>
           <h2 className="h5 fw-semibold mb-2">No hay aplicaciones legales</h2>
           <p className="text-muted small mb-4 mx-auto admin-empty-copy">
-            Crea una app para asociar usuarios, documentos y pedidos en un solo espacio.
+            Crea una app para asociar usuarios, documentos y registros de firma en un solo espacio.
           </p>
           <Button
             as={Link}

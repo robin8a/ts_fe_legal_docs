@@ -2,8 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Button, Spinner } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
 import { graphqlQuery, graphqlMutation } from '../../../utils/graphqlClient';
-import { listLegalDocs } from '../../../graphql/queries';
-import { deleteLegalDoc } from '../../../graphql/mutations';
+import { listLegalDocs, deleteLegalDoc } from '../../../graphql_custom';
 import { IconEdit2, IconTrash, IconFileX, IconPlus, IconRefresh } from '../icons/AdminIcons';
 
 const LegalDocList = () => {
@@ -131,7 +130,12 @@ const LegalDocList = () => {
               {legalDocs.map((doc) => (
                 <tr key={doc.id}>
                   <td>
-                    <div className="fw-medium">{doc.version}</div>
+                    <div className="d-flex align-items-center gap-2 flex-wrap">
+                      <span className="fw-medium">{doc.version}</span>
+                      {doc.is_latest ? (
+                        <span className="admin-pill admin-pill-success">Latest</span>
+                      ) : null}
+                    </div>
                     <div className="small mt-1">
                       <a
                         href={doc.url}

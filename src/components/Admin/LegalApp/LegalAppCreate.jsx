@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Form, Button, Alert, Spinner } from 'react-bootstrap';
 import { Link, useNavigate } from 'react-router-dom';
 import { graphqlMutation } from '../../../utils/graphqlClient';
-import { createLegalApp } from '../../../graphql/mutations';
+import { createLegalApp } from '../../../graphql_custom';
 import { IconArrowLeft } from '../icons/AdminIcons';
 
 const LegalAppCreate = () => {
@@ -39,7 +39,7 @@ const LegalAppCreate = () => {
 
       <h1 className="admin-page-title">Nueva aplicación legal</h1>
       <p className="admin-page-desc">
-        Registra un espacio de trabajo para agrupar usuarios, documentos y pedidos.
+        Registra un espacio de trabajo para agrupar usuarios, documentos y registros de firma.
       </p>
 
       {error ? <Alert variant="danger" className="mt-3">{error}</Alert> : null}

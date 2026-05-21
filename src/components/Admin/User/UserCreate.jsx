@@ -2,13 +2,12 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Form, Button, Alert, Spinner } from 'react-bootstrap';
 import { Link, useNavigate } from 'react-router-dom';
 import { graphqlQuery, graphqlMutation } from '../../../utils/graphqlClient';
-import { listLegalApps } from '../../../graphql/queries';
-import { createUser } from '../../../graphql/mutations';
-import { IconArrowLeft, IconChevronDown } from '../icons/AdminIcons';
+import { listLegalApps, createUser, createUserLegalApp } from '../../../graphql_custom';
+import { IconArrowLeft } from '../icons/AdminIcons';
 
 const UserCreate = () => {
   const navigate = useNavigate();
-  const [formData, setFormData] = useState({ name: '', legalAppUsersId: '' });
+  const [formData, setFormData] = useState({ name: '', legalAppIds: [] });
   const [legalApps, setLegalApps] = useState([]);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -34,16 +33,37 @@ const UserCreate = () => {
     setError('');
   };
 
+  const handleLegalAppToggle = (legalAppId) => {
+    setFormData((prev) => {
+      const ids = prev.legalAppIds.includes(legalAppId)
+        ? prev.legalAppIds.filter((id) => id !== legalAppId)
+        : [...prev.legalAppIds, legalAppId];
+      return { ...prev, legalAppIds: ids };
+    });
+    setError('');
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError('');
     try {
-      const input = { name: formData.name };
-      if (formData.legalAppUsersId) {
-        input.legalAppUsersId = formData.legalAppUsersId;
+      const result = await graphqlMutation(createUser, { input: { name: formData.name } });
+      const newUser = result.data.createUser;
+
+      if (formData.legalAppIds.length > 0) {
+        await Promise.all(
+          formData.legalAppIds.map((legalAppId) =>
+            graphqlMutation(createUserLegalApp, {
+              input: {
+                userUserLegalAppsId: newUser.id,
+                legalAppUserLegalAppsId: legalAppId,
+              },
+            }),
+          ),
+        );
       }
-      await graphqlMutation(createUser, { input });
+
       navigate('/admin/users');
     } catch (err) {
       console.error('Error creating user:', err);
@@ -70,7 +90,7 @@ const UserCreate = () => {
 
       <h1 className="admin-page-title">Nuevo usuario</h1>
       <p className="admin-page-desc">
-        Asocia el usuario a una aplicación legal para mantener el contexto de permisos y datos.
+        Crea el usuario y selecciona las aplicaciones legales a las que tendrá acceso.
       </p>
 
       {error ? <Alert variant="danger" className="mt-3">{error}</Alert> : null}
@@ -91,32 +111,29 @@ const UserCreate = () => {
               />
             </Form.Group>
 
-            <Form.Group className="mb-0" controlId="user-legal-app">
-              <Form.Label className="small fw-medium text-body-secondary">Aplicación legal</Form.Label>
-              <div className="position-relative">
-                <Form.Select
-                  name="legalAppUsersId"
-                  value={formData.legalAppUsersId}
-                  onChange={handleChange}
-                  className="shadow-sm pe-5"
-                  style={{ appearance: 'none', WebkitAppearance: 'none' }}
-                  aria-label="Aplicación legal"
-                >
-                  <option value="">Sin asignar</option>
+            <Form.Group className="mb-0" controlId="user-legal-apps">
+              <Form.Label className="small fw-medium text-body-secondary">Aplicaciones legales</Form.Label>
+              {legalApps.length > 0 ? (
+                <div className="d-flex flex-column gap-2 mt-2">
                   {legalApps.map((app) => (
-                    <option key={app.id} value={app.id}>
-                      {app.name}
-                    </option>
+                    <Form.Check
+                      key={app.id}
+                      type="checkbox"
+                      id={`legal-app-${app.id}`}
+                      label={app.name}
+                      checked={formData.legalAppIds.includes(app.id)}
+                      onChange={() => handleLegalAppToggle(app.id)}
+                    />
                   ))}
-                </Form.Select>
-                <span
-                  className="position-absolute top-50 end-0 translate-middle-y pe-3 text-secondary pointer-events-none"
-                  aria-hidden="true"
-                >
-                  <IconChevronDown />
-                </span>
-              </div>
-              <Form.Text className="text-muted">Opcional si aún no tienes la app creada.</Form.Text>
+                </div>
+              ) : (
+                <p className="text-muted small mb-0">
+                  No hay aplicaciones legales. Crea una en Legal Apps antes de asignar usuarios.
+                </p>
+              )}
+              <Form.Text className="text-muted">
+                Puedes asignar varias apps; cada combinación usuario–app es un vínculo independiente.
+              </Form.Text>
             </Form.Group>
           </div>
 

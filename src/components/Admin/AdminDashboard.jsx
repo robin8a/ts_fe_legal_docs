@@ -8,7 +8,6 @@ import {
   IconFileType,
   IconFileText,
   IconCheckSquare,
-  IconShoppingCart,
   IconPlus,
   IconSearch,
   IconMenu,
@@ -34,10 +33,6 @@ import LegalDocEdit from './LegalDoc/LegalDocEdit';
 import LegalDocRecordList from './LegalDocRecord/LegalDocRecordList';
 import LegalDocRecordCreate from './LegalDocRecord/LegalDocRecordCreate';
 import LegalDocRecordEdit from './LegalDocRecord/LegalDocRecordEdit';
-
-import OrderList from './Order/OrderList';
-import OrderCreate from './Order/OrderCreate';
-import OrderEdit from './Order/OrderEdit';
 
 const SECTION_META = {
   'legal-apps': {
@@ -70,12 +65,6 @@ const SECTION_META = {
     createPath: '/admin/legal-doc-records/create',
     createLabel: 'Create Record',
   },
-  orders: {
-    title: 'Orders',
-    subtitle: 'Commerce and billing activity in one place.',
-    createPath: '/admin/orders/create',
-    createLabel: 'Create Order',
-  },
 };
 
 const navItems = [
@@ -104,7 +93,6 @@ const navItems = [
     match: (p) => p.startsWith('/admin/legal-doc-records'),
     Icon: IconCheckSquare,
   },
-  { to: '/admin/orders', label: 'Orders', match: (p) => p.startsWith('/admin/orders'), Icon: IconShoppingCart },
 ];
 
 const resolveSection = (pathname) => {
@@ -119,11 +107,6 @@ const shouldHideCreateCta = (pathname) => {
   return /\/create$/.test(normalized) || /\/edit$/.test(normalized);
 };
 
-const isOrdersListOnly = (pathname) => {
-  const normalized = pathname.replace(/\/$/, '') || '/admin';
-  return normalized === '/admin/orders';
-};
-
 const AdminDashboard = () => {
   const { pathname } = useLocation();
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
@@ -131,7 +114,6 @@ const AdminDashboard = () => {
   const section = resolveSection(pathname);
   const meta = SECTION_META[section] || SECTION_META['legal-apps'];
   const hideCta = shouldHideCreateCta(pathname);
-  const ordersDenseList = isOrdersListOnly(pathname);
 
   const renderNavLinks = () =>
     navItems.map(({ to, label, match, Icon }) => (
@@ -200,13 +182,7 @@ const AdminDashboard = () => {
       </Offcanvas>
 
       <div className="admin-content">
-        <header
-          className={
-            ordersDenseList
-              ? 'admin-content-header d-flex d-md-none flex-shrink-0'
-              : 'admin-content-header'
-          }
-        >
+        <header className="admin-content-header">
           <div className="admin-content-header-lead min-w-0">
             <div className="d-flex align-items-start gap-3 min-w-0">
               <Button
@@ -220,9 +196,7 @@ const AdminDashboard = () => {
               </Button>
               <div className="min-w-0">
                 <h1 className="admin-content-title text-truncate">{meta.title}</h1>
-                {!ordersDenseList ? (
-                  <p className="admin-content-subtitle text-truncate mb-0">{meta.subtitle}</p>
-                ) : null}
+                <p className="admin-content-subtitle text-truncate mb-0">{meta.subtitle}</p>
               </div>
             </div>
           </div>
@@ -263,13 +237,7 @@ const AdminDashboard = () => {
           </div>
         </header>
 
-        <div
-          className={
-            ordersDenseList
-              ? 'admin-content-main admin-content-main--orders-dense'
-              : 'admin-content-main'
-          }
-        >
+        <div className="admin-content-main">
           <Routes>
             <Route path="legal-apps" element={<LegalAppList />} />
             <Route path="legal-apps/create" element={<LegalAppCreate />} />
@@ -290,10 +258,6 @@ const AdminDashboard = () => {
             <Route path="legal-doc-records" element={<LegalDocRecordList />} />
             <Route path="legal-doc-records/create" element={<LegalDocRecordCreate />} />
             <Route path="legal-doc-records/:id/edit" element={<LegalDocRecordEdit />} />
-
-            <Route path="orders" element={<OrderList />} />
-            <Route path="orders/create" element={<OrderCreate />} />
-            <Route path="orders/:id/edit" element={<OrderEdit />} />
 
             <Route index element={<LegalAppList />} />
           </Routes>

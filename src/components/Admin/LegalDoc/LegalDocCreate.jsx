@@ -2,8 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Form, Button, Alert, Row, Col, InputGroup, Spinner } from 'react-bootstrap';
 import { Link, useNavigate } from 'react-router-dom';
 import { graphqlQuery, graphqlMutation } from '../../../utils/graphqlClient';
-import { listLegalDocTypes, listLegalDocs } from '../../../graphql/queries';
-import { createLegalDoc } from '../../../graphql/mutations';
+import { listLegalDocTypes, listLegalDocs, createLegalDoc } from '../../../graphql_custom';
 import { IconArrowLeft, IconChevronDown, IconSearch, IconTrash } from '../icons/AdminIcons';
 
 const buildUrlFromSuffix = (suffix) => {
@@ -23,6 +22,7 @@ const LegalDocCreate = () => {
   const [formData, setFormData] = useState({
     version: '',
     isActive: true,
+    is_latest: true,
     url: '',
     legalDocTypeLegalDocsId: '',
     legalDocLegalDocChildrenId: '',
@@ -79,6 +79,7 @@ const LegalDocCreate = () => {
       const input = {
         version: formData.version,
         isActive: formData.isActive,
+        is_latest: formData.is_latest,
         url: formData.url,
       };
       if (formData.legalDocTypeLegalDocsId) {
@@ -236,6 +237,24 @@ const LegalDocCreate = () => {
                     <span className="small fw-medium text-body-secondary d-block mb-1">Set as Active Document</span>
                     <span className="text-muted small d-block">
                       Marking this as active will supersede any previous versions of this type.
+                    </span>
+                  </span>
+                }
+              />
+            </div>
+
+            <div className="admin-active-row mt-3">
+              <Form.Check
+                type="checkbox"
+                name="is_latest"
+                id="legal-doc-latest"
+                checked={formData.is_latest}
+                onChange={handleChange}
+                label={
+                  <span>
+                    <span className="small fw-medium text-body-secondary d-block mb-1">Mark as latest version</span>
+                    <span className="text-muted small d-block">
+                      Only one version per document type should typically be the latest.
                     </span>
                   </span>
                 }

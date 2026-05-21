@@ -1,11 +1,21 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Card, Form, Button, Alert } from 'react-bootstrap';
-import { useNavigate, useParams } from 'react-router-dom';
-import { API, graphqlOperation } from 'aws-amplify';
+import { Form, Button, Alert, Spinner } from 'react-bootstrap';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import { graphqlQuery, graphqlMutation } from '../../../utils/graphqlClient';
-import { getLegalDocRecord } from '../../../graphql/queries';
-import { listUsers, listLegalDocs } from '../../../graphql/queries';
-import { updateLegalDocRecord } from '../../../graphql/mutations';
+import {
+  getLegalDocRecord,
+  listUserLegalApps,
+  listLegalDocs,
+  updateLegalDocRecord,
+} from '../../../graphql_custom';
+import { IconArrowLeft, IconChevronDown } from '../icons/AdminIcons';
+import { shortId } from '../../../utils/adminListFormat';
+
+const userLegalAppLabel = (item) => {
+  const userName = item.user?.name ?? shortId(item.userUserLegalAppsId);
+  const appName = item.legalApp?.name ?? shortId(item.legalAppUserLegalAppsId);
+  return `${userName} — ${appName}`;
+};
 
 const LegalDocRecordEdit = () => {
   const { id } = useParams();
@@ -13,10 +23,10 @@ const LegalDocRecordEdit = () => {
   const [formData, setFormData] = useState({
     sign: '',
     legalSignDate: Math.floor(Date.now() / 1000),
-    userLegalDocRecordsId: '',
+    userLegalAppLegalDocRecordsId: '',
     legalDocLegalDocRecordsId: '',
   });
-  const [users, setUsers] = useState([]);
+  const [userLegalApps, setUserLegalApps] = useState([]);
   const [legalDocs, setLegalDocs] = useState([]);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -34,7 +44,7 @@ const LegalDocRecordEdit = () => {
       setFormData({
         sign: record.sign || '',
         legalSignDate: record.legalSignDate || Math.floor(Date.now() / 1000),
-        userLegalDocRecordsId: record.userLegalDocRecordsId || '',
+        userLegalAppLegalDocRecordsId: record.userLegalAppLegalDocRecordsId || '',
         legalDocLegalDocRecordsId: record.legalDocLegalDocRecordsId || '',
       });
       setLoadingData(false);
@@ -47,14 +57,14 @@ const LegalDocRecordEdit = () => {
 
   const loadReferences = async () => {
     try {
-      const [usersResult, docsResult] = await Promise.all([
-        graphqlQuery(listUsers),
+      const [ulaResult, docsResult] = await Promise.all([
+        graphqlQuery(listUserLegalApps),
         graphqlQuery(listLegalDocs),
       ]);
-      setUsers(usersResult.data.listUsers.items);
+      setUserLegalApps(ulaResult.data.listUserLegalApps.items);
       setLegalDocs(docsResult.data.listLegalDocs.items);
-    } catch (error) {
-      console.error('Error loading references:', error);
+    } catch (err) {
+      console.error('Error loading references:', err);
     }
   };
 
@@ -62,12 +72,9 @@ const LegalDocRecordEdit = () => {
     let value = e.target.value;
     if (e.target.name === 'legalSignDate') {
       const date = new Date(e.target.value);
-      value = Math.floor(date.getTime() / 1000);
+      value = Number.isNaN(date.getTime()) ? formData.legalSignDate : Math.floor(date.getTime() / 1000);
     }
-    setFormData({
-      ...formData,
-      [e.target.name]: value,
-    });
+    setFormData({ ...formData, [e.target.name]: value });
     setError('');
   };
 
@@ -80,10 +87,10 @@ const LegalDocRecordEdit = () => {
       const input = {
         id,
         sign: formData.sign,
-        legalSignDate: parseInt(formData.legalSignDate),
+        legalSignDate: parseInt(String(formData.legalSignDate), 10),
       };
-      if (formData.userLegalDocRecordsId) {
-        input.userLegalDocRecordsId = formData.userLegalDocRecordsId;
+      if (formData.userLegalAppLegalDocRecordsId) {
+        input.userLegalAppLegalDocRecordsId = formData.userLegalAppLegalDocRecordsId;
       }
       if (formData.legalDocLegalDocRecordsId) {
         input.legalDocLegalDocRecordsId = formData.legalDocLegalDocRecordsId;
@@ -99,34 +106,47 @@ const LegalDocRecordEdit = () => {
   };
 
   if (loadingData) {
-    return <Container className="mt-4">Loading...</Container>;
+    return (
+      <div className="d-flex justify-content-center align-items-center py-5" role="status">
+        <Spinner animation="border" />
+        <span className="visually-hidden">Cargando…</span>
+      </div>
+    );
   }
 
   const dateValue = new Date(formData.legalSignDate * 1000).toISOString().slice(0, 16);
 
   return (
-    <Container className="mt-4">
-      <Card>
-        <Card.Header>
-          <h3>Edit Legal Document Record</h3>
-        </Card.Header>
-        <Card.Body>
-          {error && <Alert variant="danger">{error}</Alert>}
-          <Form onSubmit={handleSubmit}>
-            <Form.Group className="mb-3">
-              <Form.Label>Sign *</Form.Label>
+    <div className="admin-form-page">
+      <Link to="/admin/legal-doc-records" className="admin-back-link">
+        <IconArrowLeft />
+        Volver a registros
+      </Link>
+
+      <h1 className="admin-page-title">Editar registro de documento</h1>
+      <p className="admin-page-desc">
+        Actualiza la firma, fecha y vínculos con usuario en aplicación y documento legal.
+      </p>
+
+      {error ? <Alert variant="danger" className="mt-3">{error}</Alert> : null}
+
+      <Form className="mt-4" onSubmit={handleSubmit} noValidate>
+        <div className="admin-form-card">
+          <div className="admin-form-card-body admin-form-control-like">
+            <Form.Group className="mb-4" controlId="record-sign">
+              <Form.Label className="small fw-medium text-body-secondary">Firma / identificador *</Form.Label>
               <Form.Control
                 type="text"
                 name="sign"
                 value={formData.sign}
                 onChange={handleChange}
                 required
-                placeholder="Enter sign"
+                placeholder="Referencia o hash de firma"
               />
             </Form.Group>
 
-            <Form.Group className="mb-3">
-              <Form.Label>Legal Sign Date *</Form.Label>
+            <Form.Group className="mb-4" controlId="record-date">
+              <Form.Label className="small fw-medium text-body-secondary">Fecha y hora legal *</Form.Label>
               <Form.Control
                 type="datetime-local"
                 name="legalSignDate"
@@ -136,54 +156,78 @@ const LegalDocRecordEdit = () => {
               />
             </Form.Group>
 
-            <Form.Group className="mb-3">
-              <Form.Label>User</Form.Label>
-              <Form.Select
-                name="userLegalDocRecordsId"
-                value={formData.userLegalDocRecordsId}
-                onChange={handleChange}
-              >
-                <option value="">None</option>
-                {users.map((user) => (
-                  <option key={user.id} value={user.id}>
-                    {user.name}
-                  </option>
-                ))}
-              </Form.Select>
+            <Form.Group className="mb-4" controlId="record-user-legal-app">
+              <Form.Label className="small fw-medium text-body-secondary">Usuario en aplicación</Form.Label>
+              <div className="position-relative">
+                <Form.Select
+                  name="userLegalAppLegalDocRecordsId"
+                  value={formData.userLegalAppLegalDocRecordsId}
+                  onChange={handleChange}
+                  className="shadow-sm pe-5"
+                  style={{ appearance: 'none', WebkitAppearance: 'none' }}
+                >
+                  <option value="">Sin asignar</option>
+                  {userLegalApps.map((item) => (
+                    <option key={item.id} value={item.id}>
+                      {userLegalAppLabel(item)}
+                    </option>
+                  ))}
+                </Form.Select>
+                <span
+                  className="position-absolute top-50 end-0 translate-middle-y pe-3 text-secondary pointer-events-none"
+                  aria-hidden="true"
+                >
+                  <IconChevronDown />
+                </span>
+              </div>
             </Form.Group>
 
-            <Form.Group className="mb-3">
-              <Form.Label>Legal Document</Form.Label>
-              <Form.Select
-                name="legalDocLegalDocRecordsId"
-                value={formData.legalDocLegalDocRecordsId}
-                onChange={handleChange}
-              >
-                <option value="">None</option>
-                {legalDocs.map((doc) => (
-                  <option key={doc.id} value={doc.id}>
-                    {doc.version} - {doc.id}
-                  </option>
-                ))}
-              </Form.Select>
+            <Form.Group className="mb-0" controlId="record-doc">
+              <Form.Label className="small fw-medium text-body-secondary">Documento legal</Form.Label>
+              <div className="position-relative">
+                <Form.Select
+                  name="legalDocLegalDocRecordsId"
+                  value={formData.legalDocLegalDocRecordsId}
+                  onChange={handleChange}
+                  className="shadow-sm pe-5"
+                  style={{ appearance: 'none', WebkitAppearance: 'none' }}
+                >
+                  <option value="">Sin asignar</option>
+                  {legalDocs.map((doc) => (
+                    <option key={doc.id} value={doc.id}>
+                      {doc.version} — {shortId(doc.id)}
+                    </option>
+                  ))}
+                </Form.Select>
+                <span
+                  className="position-absolute top-50 end-0 translate-middle-y pe-3 text-secondary pointer-events-none"
+                  aria-hidden="true"
+                >
+                  <IconChevronDown />
+                </span>
+              </div>
             </Form.Group>
+          </div>
 
-            <Button variant="primary" type="submit" disabled={loading}>
-              {loading ? 'Updating...' : 'Update'}
+          <div className="admin-form-card-footer">
+            <Button type="button" variant="outline-secondary" onClick={() => navigate('/admin/legal-doc-records')}>
+              Cancelar
             </Button>
-            <Button
-              variant="secondary"
-              className="ms-2"
-              onClick={() => navigate('/admin/legal-doc-records')}
-            >
-              Cancel
+            <Button type="submit" variant="dark" className="shadow-sm" disabled={loading}>
+              {loading ? (
+                <>
+                  <Spinner animation="border" size="sm" className="me-2" aria-hidden />
+                  Guardando…
+                </>
+              ) : (
+                'Guardar cambios'
+              )}
             </Button>
-          </Form>
-        </Card.Body>
-      </Card>
-    </Container>
+          </div>
+        </div>
+      </Form>
+    </div>
   );
 };
 
 export default LegalDocRecordEdit;
-

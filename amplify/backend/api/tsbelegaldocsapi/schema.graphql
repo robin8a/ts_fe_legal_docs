@@ -5,12 +5,18 @@ input AMPLIFY { globalAuthRule: AuthRule = { allow: public } } # FOR TESTING ONL
 type LegalApp @model @auth(rules: [{ allow: public }]) {
   id: ID!
   name: String!
-  users: [User] @hasMany
+  userLegalApps: [UserLegalApp] @hasMany
 }
 
 type User @model @auth(rules: [{ allow: public }]) {
   id: ID!
   name: String!
+  userLegalApps: [UserLegalApp] @hasMany
+}
+
+type UserLegalApp @model @auth(rules: [{ allow: public }]) {
+  id: ID!
+  user: User @belongsTo
   legalApp: LegalApp @belongsTo
   legalDocRecords: [LegalDocRecord] @hasMany
 }
@@ -19,36 +25,26 @@ type LegalDocType @model @auth(rules: [{ allow: public }]) {
   id: ID!
   name: String!
   shortName: String
-  legalDocs: [LegalDoc] @hasMany
   description: String
+  legalDocs: [LegalDoc] @hasMany
 }
 
 type LegalDoc @model @auth(rules: [{ allow: public }]) {
   id: ID!
   version: String!
   isActive: Boolean!
+  is_latest: Boolean!
   url: AWSURL!
-  legalDocParentID:  LegalDoc @belongsTo
+  legalDocParentID: LegalDoc @belongsTo
   legalDocChildren: [LegalDoc] @hasMany
   legalDocType: LegalDocType! @belongsTo
   legalDocRecords: [LegalDocRecord] @hasMany
 }
 
-type LegalDocRecord @model @auth(rules: [{ allow: public }]){
+type LegalDocRecord @model @auth(rules: [{ allow: public }]) {
   id: ID!
   sign: String!
   legalSignDate: AWSTimestamp!
-  user: User @belongsTo
+  userLegalApp: UserLegalApp @belongsTo
   legalDoc: LegalDoc @belongsTo
-
-}
-
-type Order @model @auth(rules: [{ allow: public }]){
-  id: ID!
-  customerID: ID!
-  accountRepresentativeID: ID!
-  productID: ID!
-  status: String!
-  amount: Int!
-  date: String!
 }

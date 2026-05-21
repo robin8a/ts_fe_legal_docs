@@ -3,8 +3,7 @@ import { Container, Card, Form, Button, Alert } from 'react-bootstrap';
 import { useNavigate, useParams } from 'react-router-dom';
 import { API, graphqlOperation } from 'aws-amplify';
 import { graphqlQuery, graphqlMutation } from '../../../utils/graphqlClient';
-import { getLegalDocType } from '../../../graphql/queries';
-import { updateLegalDocType } from '../../../graphql/mutations';
+import { getLegalDocType, updateLegalDocType } from '../../../graphql_custom';
 
 const LegalDocTypeEdit = () => {
   const { id } = useParams();

@@ -2,10 +2,37 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Button, Spinner } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
 import { graphqlQuery, graphqlMutation } from '../../../utils/graphqlClient';
-import { listUsers } from '../../../graphql/queries';
-import { deleteUser } from '../../../graphql/mutations';
+import { listUsers } from '../../../graphql_custom';
+import { deleteUser } from '../../../graphql_custom';
 import { IconEdit2, IconTrash, IconUsers, IconPlus, IconRefresh } from '../icons/AdminIcons';
 import { formatDateShort, formatDateTime, shortId } from '../../../utils/adminListFormat';
+
+const legalAppsLabel = (user) => {
+  const items = user.userLegalApps?.items ?? [];
+  const names = items.map((item) => item.legalApp?.name).filter(Boolean);
+  if (names.length === 0) return null;
+  return names;
+};
+
+const LegalAppsPills = ({ names }) => {
+  if (!names || names.length === 0) {
+    return <span className="text-muted">—</span>;
+  }
+  const visible = names.slice(0, 2);
+  const extra = names.length - visible.length;
+  return (
+    <div className="d-flex flex-wrap gap-1">
+      {visible.map((name) => (
+        <span key={name} className="admin-pill">
+          {name}
+        </span>
+      ))}
+      {extra > 0 ? (
+        <span className="admin-pill text-muted">+{extra}</span>
+      ) : null}
+    </div>
+  );
+};
 
 const UserList = () => {
   const [users, setUsers] = useState([]);
@@ -44,12 +71,6 @@ const UserList = () => {
         alert('No se pudo eliminar el usuario.');
       }
     }
-  };
-
-  const legalAppLabel = (user) => {
-    if (user.legalApp?.name) return user.legalApp.name;
-    if (user.legalAppUsersId) return shortId(user.legalAppUsersId);
-    return '—';
   };
 
   if (loading) {
@@ -102,7 +123,7 @@ const UserList = () => {
               <tr>
                 <th>ID</th>
                 <th>Nombre</th>
-                <th>App legal</th>
+                <th>Apps legales</th>
                 <th>Creado</th>
                 <th>Actualizado</th>
                 <th className="text-end">Acciones</th>
@@ -120,7 +141,7 @@ const UserList = () => {
                     <div className="fw-medium">{user.name}</div>
                   </td>
                   <td>
-                    <span className="admin-pill">{legalAppLabel(user)}</span>
+                    <LegalAppsPills names={legalAppsLabel(user)} />
                   </td>
                   <td className="text-muted">{formatDateShort(user.createdAt)}</td>
                   <td className="text-muted">{formatDateTime(user.updatedAt)}</td>
@@ -157,7 +178,7 @@ const UserList = () => {
           </div>
           <h2 className="h5 fw-semibold mb-2">No hay usuarios</h2>
           <p className="text-muted small mb-4 mx-auto admin-empty-copy">
-            Añade usuarios vinculados a una aplicación legal para gestionar accesos y registros.
+            Añade usuarios y asígnalos a una o más aplicaciones legales para gestionar accesos y registros.
           </p>
           <Button
             as={Link}

@@ -2,8 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Button, Spinner } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
 import { graphqlQuery, graphqlMutation } from '../../../utils/graphqlClient';
-import { listLegalDocTypes } from '../../../graphql/queries';
-import { deleteLegalDocType } from '../../../graphql/mutations';
+import { listLegalDocTypes, deleteLegalDocType } from '../../../graphql_custom';
 import { IconEdit2, IconTrash, IconFileType, IconPlus, IconRefresh } from '../icons/AdminIcons';
 import { formatDateShort, shortId } from '../../../utils/adminListFormat';
 
