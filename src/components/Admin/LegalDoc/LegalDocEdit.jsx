@@ -6,6 +6,8 @@ import {
   getLegalDoc,
   listLegalDocTypes,
   listLegalDocs,
+  listLegalApps,
+  listUsers,
   updateLegalDoc,
 } from '../../../graphql_custom';
 import { IconArrowLeft, IconChevronDown } from '../icons/AdminIcons';
@@ -20,9 +22,13 @@ const LegalDocEdit = () => {
     url: '',
     legalDocTypeLegalDocsId: '',
     legalDocLegalDocChildrenId: '',
+    legalAppLegalDocsId: '',
+    userLegalDocsId: '',
   });
   const [docTypes, setDocTypes] = useState([]);
   const [parentDocs, setParentDocs] = useState([]);
+  const [legalApps, setLegalApps] = useState([]);
+  const [users, setUsers] = useState([]);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [loadingData, setLoadingData] = useState(true);
@@ -43,6 +49,8 @@ const LegalDocEdit = () => {
         url: doc.url || '',
         legalDocTypeLegalDocsId: doc.legalDocTypeLegalDocsId || '',
         legalDocLegalDocChildrenId: doc.legalDocLegalDocChildrenId || '',
+        legalAppLegalDocsId: doc.legalAppLegalDocsId || doc.legalApp?.id || '',
+        userLegalDocsId: doc.userLegalDocsId || doc.author?.id || '',
       });
       setLoadingData(false);
     } catch (err) {
@@ -54,12 +62,16 @@ const LegalDocEdit = () => {
 
   const loadReferences = async () => {
     try {
-      const [docTypesResult, docsResult] = await Promise.all([
+      const [docTypesResult, docsResult, appsResult, usersResult] = await Promise.all([
         graphqlQuery(listLegalDocTypes),
         graphqlQuery(listLegalDocs),
+        graphqlQuery(listLegalApps),
+        graphqlQuery(listUsers),
       ]);
       setDocTypes(docTypesResult.data.listLegalDocTypes.items);
       setParentDocs(docsResult.data.listLegalDocs.items);
+      setLegalApps(appsResult.data.listLegalApps.items);
+      setUsers(usersResult.data.listUsers.items);
     } catch (err) {
       console.error('Error loading references:', err);
     }
@@ -92,6 +104,12 @@ const LegalDocEdit = () => {
       }
       if (formData.legalDocLegalDocChildrenId) {
         input.legalDocLegalDocChildrenId = formData.legalDocLegalDocChildrenId;
+      }
+      if (formData.legalAppLegalDocsId) {
+        input.legalAppLegalDocsId = formData.legalAppLegalDocsId;
+      }
+      if (formData.userLegalDocsId) {
+        input.userLegalDocsId = formData.userLegalDocsId;
       }
 
       await graphqlMutation(updateLegalDoc, { input });
@@ -162,7 +180,72 @@ const LegalDocEdit = () => {
                       ))}
                     </Form.Select>
                     <span
-                      className="position-absolute top-50 end-0 translate-middle-y pe-3 text-secondary pointer-events-none"
+                      className="position-absolute top-50 end-0 translate-middle-y pe-3 text-secondary pe-none"
+                      aria-hidden="true"
+                    >
+                      <IconChevronDown />
+                    </span>
+                  </div>
+                </Form.Group>
+              </Col>
+            </Row>
+
+            <Row className="g-4 mb-4">
+              <Col md={6}>
+                <Form.Group controlId="legal-doc-app-edit">
+                  <div className="admin-form-label-row mb-2">
+                    <Form.Label className="small fw-medium text-body-secondary mb-0">Legal App</Form.Label>
+                    <span className="text-muted small fw-normal">Owner workspace</span>
+                  </div>
+                  <div className="position-relative">
+                    <Form.Select
+                      name="legalAppLegalDocsId"
+                      value={formData.legalAppLegalDocsId}
+                      onChange={handleChange}
+                      className="shadow-sm pe-5"
+                      style={{ appearance: 'none', WebkitAppearance: 'none' }}
+                      aria-label="Legal App owning this document"
+                    >
+                      <option value="">Unassigned</option>
+                      {legalApps.map((app) => (
+                        <option key={app.id} value={app.id}>
+                          {app.name}
+                        </option>
+                      ))}
+                    </Form.Select>
+                    <span
+                      className="position-absolute top-50 end-0 translate-middle-y pe-3 text-secondary pe-none"
+                      aria-hidden="true"
+                    >
+                      <IconChevronDown />
+                    </span>
+                  </div>
+                </Form.Group>
+              </Col>
+              <Col md={6}>
+                <Form.Group controlId="legal-doc-author-edit">
+                  <div className="admin-form-label-row mb-2">
+                    <Form.Label className="small fw-medium text-body-secondary mb-0">Author</Form.Label>
+                    <span className="text-muted small fw-normal">Optional</span>
+                  </div>
+                  <div className="position-relative">
+                    <Form.Select
+                      name="userLegalDocsId"
+                      value={formData.userLegalDocsId}
+                      onChange={handleChange}
+                      className="shadow-sm pe-5"
+                      style={{ appearance: 'none', WebkitAppearance: 'none' }}
+                      aria-label="Document author"
+                    >
+                      <option value="">No author</option>
+                      {users.map((u) => (
+                        <option key={u.id} value={u.id}>
+                          {u.name}
+                        </option>
+                      ))}
+                    </Form.Select>
+                    <span
+                      className="position-absolute top-50 end-0 translate-middle-y pe-3 text-secondary pe-none"
                       aria-hidden="true"
                     >
                       <IconChevronDown />

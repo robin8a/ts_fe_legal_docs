@@ -290,10 +290,22 @@ export const createLegalDoc = /* GraphQL */ `
         nextToken
         __typename
       }
+      legalApp {
+        id
+        name
+        __typename
+      }
+      author {
+        id
+        name
+        __typename
+      }
       createdAt
       updatedAt
       legalDocTypeLegalDocsId
       legalDocLegalDocChildrenId
+      legalAppLegalDocsId
+      userLegalDocsId
       __typename
     }
   }
@@ -339,10 +351,22 @@ export const updateLegalDoc = /* GraphQL */ `
         nextToken
         __typename
       }
+      legalApp {
+        id
+        name
+        __typename
+      }
+      author {
+        id
+        name
+        __typename
+      }
       createdAt
       updatedAt
       legalDocTypeLegalDocsId
       legalDocLegalDocChildrenId
+      legalAppLegalDocsId
+      userLegalDocsId
       __typename
     }
   }
@@ -388,10 +412,22 @@ export const deleteLegalDoc = /* GraphQL */ `
         nextToken
         __typename
       }
+      legalApp {
+        id
+        name
+        __typename
+      }
+      author {
+        id
+        name
+        __typename
+      }
       createdAt
       updatedAt
       legalDocTypeLegalDocsId
       legalDocLegalDocChildrenId
+      legalAppLegalDocsId
+      userLegalDocsId
       __typename
     }
   }

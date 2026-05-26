@@ -3,15 +3,18 @@
 input AMPLIFY { globalAuthRule: AuthRule = { allow: public } } # FOR TESTING ONLY!
 
 type LegalApp @model @auth(rules: [{ allow: public }]) {
-  id: ID!
+  id: ID! # Must be descriptive Ex. TS_ORACULO
   name: String!
   userLegalApps: [UserLegalApp] @hasMany
+  legalDocs: [LegalDoc] @hasMany
 }
 
 type User @model @auth(rules: [{ allow: public }]) {
-  id: ID!
+  id: ID! # Is the same on Cognito sub-id
   name: String!
   userLegalApps: [UserLegalApp] @hasMany
+  legalDocRecords: [LegalDocRecord] @hasMany
+  legalDocs: [LegalDoc] @hasMany
 }
 
 type UserLegalApp @model @auth(rules: [{ allow: public }]) {
@@ -39,6 +42,8 @@ type LegalDoc @model @auth(rules: [{ allow: public }]) {
   legalDocChildren: [LegalDoc] @hasMany
   legalDocType: LegalDocType! @belongsTo
   legalDocRecords: [LegalDocRecord] @hasMany
+  legalApp: LegalApp @belongsTo
+  author: User @belongsTo
 }
 
 type LegalDocRecord @model @auth(rules: [{ allow: public }]) {

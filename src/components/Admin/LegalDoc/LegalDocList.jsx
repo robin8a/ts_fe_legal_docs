@@ -120,6 +120,8 @@ const LegalDocList = () => {
               <tr>
                 <th>Document Version</th>
                 <th>Type</th>
+                <th>Legal App</th>
+                <th>Author</th>
                 <th>Status</th>
                 <th>Parent Doc</th>
                 <th>Created At</th>
@@ -150,6 +152,14 @@ const LegalDocList = () => {
                   <td>
                     <span className="admin-pill">{typeName(doc)}</span>
                   </td>
+                  <td>
+                    {doc.legalApp?.name ? (
+                      <span className="admin-pill">{doc.legalApp.name}</span>
+                    ) : (
+                      <span className="text-muted">—</span>
+                    )}
+                  </td>
+                  <td className="text-muted">{doc.author?.name || '—'}</td>
                   <td>
                     {doc.isActive ? (
                       <span className="admin-pill admin-pill-success">Active</span>

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Form, Button, Alert, Spinner } from 'react-bootstrap';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { graphqlQuery, graphqlMutation } from '../../../utils/graphqlClient';
@@ -68,12 +68,52 @@ const LegalDocRecordEdit = () => {
     }
   };
 
+  const selectedDoc = useMemo(
+    () => legalDocs.find((d) => d.id === formData.legalDocLegalDocRecordsId),
+    [legalDocs, formData.legalDocLegalDocRecordsId],
+  );
+
+  const docLegalAppId =
+    selectedDoc?.legalApp?.id ?? selectedDoc?.legalAppLegalDocsId ?? null;
+
+  const filteredUserLegalApps = useMemo(() => {
+    if (!docLegalAppId) return userLegalApps;
+    return userLegalApps.filter(
+      (item) =>
+        item.legalApp?.id === docLegalAppId ||
+        item.legalAppUserLegalAppsId === docLegalAppId,
+    );
+  }, [userLegalApps, docLegalAppId]);
+
   const handleChange = (e) => {
     let value = e.target.value;
     if (e.target.name === 'legalSignDate') {
       const date = new Date(e.target.value);
       value = Number.isNaN(date.getTime()) ? formData.legalSignDate : Math.floor(date.getTime() / 1000);
     }
+
+    if (e.target.name === 'legalDocLegalDocRecordsId') {
+      const nextDoc = legalDocs.find((d) => d.id === value);
+      const nextAppId = nextDoc?.legalApp?.id ?? nextDoc?.legalAppLegalDocsId ?? null;
+      const currentUla = userLegalApps.find(
+        (item) => item.id === formData.userLegalAppLegalDocRecordsId,
+      );
+      const currentAppId =
+        currentUla?.legalApp?.id ?? currentUla?.legalAppUserLegalAppsId ?? null;
+      const ulaStillValid =
+        !nextAppId || !currentUla || currentAppId === nextAppId;
+
+      setFormData({
+        ...formData,
+        legalDocLegalDocRecordsId: value,
+        userLegalAppLegalDocRecordsId: ulaStillValid
+          ? formData.userLegalAppLegalDocRecordsId
+          : '',
+      });
+      setError('');
+      return;
+    }
+
     setFormData({ ...formData, [e.target.name]: value });
     setError('');
   };
@@ -156,33 +196,7 @@ const LegalDocRecordEdit = () => {
               />
             </Form.Group>
 
-            <Form.Group className="mb-4" controlId="record-user-legal-app">
-              <Form.Label className="small fw-medium text-body-secondary">Usuario en aplicación</Form.Label>
-              <div className="position-relative">
-                <Form.Select
-                  name="userLegalAppLegalDocRecordsId"
-                  value={formData.userLegalAppLegalDocRecordsId}
-                  onChange={handleChange}
-                  className="shadow-sm pe-5"
-                  style={{ appearance: 'none', WebkitAppearance: 'none' }}
-                >
-                  <option value="">Sin asignar</option>
-                  {userLegalApps.map((item) => (
-                    <option key={item.id} value={item.id}>
-                      {userLegalAppLabel(item)}
-                    </option>
-                  ))}
-                </Form.Select>
-                <span
-                  className="position-absolute top-50 end-0 translate-middle-y pe-3 text-secondary pointer-events-none"
-                  aria-hidden="true"
-                >
-                  <IconChevronDown />
-                </span>
-              </div>
-            </Form.Group>
-
-            <Form.Group className="mb-0" controlId="record-doc">
+            <Form.Group className="mb-4" controlId="record-doc">
               <Form.Label className="small fw-medium text-body-secondary">Documento legal</Form.Label>
               <div className="position-relative">
                 <Form.Select
@@ -191,21 +205,67 @@ const LegalDocRecordEdit = () => {
                   onChange={handleChange}
                   className="shadow-sm pe-5"
                   style={{ appearance: 'none', WebkitAppearance: 'none' }}
+                  aria-label="Documento"
                 >
                   <option value="">Sin asignar</option>
                   {legalDocs.map((doc) => (
                     <option key={doc.id} value={doc.id}>
-                      {doc.version} — {shortId(doc.id)}
+                      {doc.version}
+                      {doc.legalApp?.name ? ` (${doc.legalApp.name})` : ''}
+                      {' — '}
+                      {shortId(doc.id)}
                     </option>
                   ))}
                 </Form.Select>
                 <span
-                  className="position-absolute top-50 end-0 translate-middle-y pe-3 text-secondary pointer-events-none"
+                  className="position-absolute top-50 end-0 translate-middle-y pe-3 text-secondary pe-none"
                   aria-hidden="true"
                 >
                   <IconChevronDown />
                 </span>
               </div>
+              {selectedDoc && !docLegalAppId ? (
+                <Form.Text className="text-warning">
+                  Este documento no tiene app legal asignada; se muestran todos los vínculos usuario–app.
+                </Form.Text>
+              ) : null}
+            </Form.Group>
+
+            <Form.Group className="mb-0" controlId="record-user-legal-app">
+              <Form.Label className="small fw-medium text-body-secondary">Usuario en aplicación</Form.Label>
+              <div className="position-relative">
+                <Form.Select
+                  name="userLegalAppLegalDocRecordsId"
+                  value={formData.userLegalAppLegalDocRecordsId}
+                  onChange={handleChange}
+                  className="shadow-sm pe-5"
+                  style={{ appearance: 'none', WebkitAppearance: 'none' }}
+                  aria-label="Usuario en aplicación"
+                  disabled={Boolean(docLegalAppId && filteredUserLegalApps.length === 0)}
+                >
+                  <option value="">Sin asignar</option>
+                  {filteredUserLegalApps.map((item) => (
+                    <option key={item.id} value={item.id}>
+                      {userLegalAppLabel(item)}
+                    </option>
+                  ))}
+                </Form.Select>
+                <span
+                  className="position-absolute top-50 end-0 translate-middle-y pe-3 text-secondary pe-none"
+                  aria-hidden="true"
+                >
+                  <IconChevronDown />
+                </span>
+              </div>
+              {docLegalAppId && filteredUserLegalApps.length === 0 ? (
+                <Form.Text className="text-muted">
+                  No hay usuarios vinculados a la app «{selectedDoc?.legalApp?.name}». Asígnalos en Usuarios.
+                </Form.Text>
+              ) : docLegalAppId ? (
+                <Form.Text className="text-muted">
+                  Solo vínculos de la app «{selectedDoc?.legalApp?.name ?? 'seleccionada'}».
+                </Form.Text>
+              ) : null}
             </Form.Group>
           </div>
 

@@ -17,6 +17,16 @@ export const getLegalApp = /* GraphQL */ `
         nextToken
         __typename
       }
+      legalDocs {
+        items {
+          id
+          version
+          isActive
+          is_latest
+        }
+        nextToken
+        __typename
+      }
       createdAt
       updatedAt
       __typename
@@ -43,6 +53,15 @@ export const listLegalApps = /* GraphQL */ `
           nextToken
           __typename
         }
+        legalDocs {
+          items {
+            id
+            is_latest
+            isActive
+          }
+          nextToken
+          __typename
+        }
         __typename
       }
       nextToken
@@ -63,6 +82,16 @@ export const getUser = /* GraphQL */ `
             id
             name
           }
+        }
+        nextToken
+        __typename
+      }
+      legalDocs {
+        items {
+          id
+          version
+          is_latest
+          isActive
         }
         nextToken
         __typename
@@ -93,6 +122,13 @@ export const listUsers = /* GraphQL */ `
               id
               name
             }
+          }
+          nextToken
+          __typename
+        }
+        legalDocs {
+          items {
+            id
           }
           nextToken
           __typename
@@ -232,10 +268,22 @@ export const getLegalDoc = /* GraphQL */ `
         nextToken
         __typename
       }
+      legalApp {
+        id
+        name
+        __typename
+      }
+      author {
+        id
+        name
+        __typename
+      }
       createdAt
       updatedAt
       legalDocTypeLegalDocsId
       legalDocLegalDocChildrenId
+      legalAppLegalDocsId
+      userLegalDocsId
       __typename
     }
   }
@@ -258,6 +306,8 @@ export const listLegalDocs = /* GraphQL */ `
         updatedAt
         legalDocTypeLegalDocsId
         legalDocLegalDocChildrenId
+        legalAppLegalDocsId
+        userLegalDocsId
         legalDocType {
           id
           name
@@ -266,6 +316,16 @@ export const listLegalDocs = /* GraphQL */ `
         legalDocParentID {
           id
           version
+          __typename
+        }
+        legalApp {
+          id
+          name
+          __typename
+        }
+        author {
+          id
+          name
           __typename
         }
         __typename
@@ -299,10 +359,22 @@ export const getLegalDocRecord = /* GraphQL */ `
         isActive
         is_latest
         url
+        legalApp {
+          id
+          name
+          __typename
+        }
+        author {
+          id
+          name
+          __typename
+        }
         createdAt
         updatedAt
         legalDocTypeLegalDocsId
         legalDocLegalDocChildrenId
+        legalAppLegalDocsId
+        userLegalDocsId
         __typename
       }
       createdAt
@@ -343,6 +415,16 @@ export const listLegalDocRecords = /* GraphQL */ `
         legalDoc {
           id
           version
+          legalApp {
+            id
+            name
+            __typename
+          }
+          author {
+            id
+            name
+            __typename
+          }
           __typename
         }
         __typename

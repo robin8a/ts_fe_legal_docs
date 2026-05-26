@@ -124,6 +124,7 @@ const UserList = () => {
                 <th>ID</th>
                 <th>Nombre</th>
                 <th>Apps legales</th>
+                <th>Docs autoría</th>
                 <th>Creado</th>
                 <th>Actualizado</th>
                 <th className="text-end">Acciones</th>
@@ -142,6 +143,11 @@ const UserList = () => {
                   </td>
                   <td>
                     <LegalAppsPills names={legalAppsLabel(user)} />
+                  </td>
+                  <td>
+                    <span className="admin-data-count-pill">
+                      {user.legalDocs?.items?.length ?? 0}
+                    </span>
                   </td>
                   <td className="text-muted">{formatDateShort(user.createdAt)}</td>
                   <td className="text-muted">{formatDateTime(user.updatedAt)}</td>

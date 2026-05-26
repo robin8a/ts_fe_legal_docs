@@ -96,6 +96,7 @@ const LegalAppList = () => {
                 <th>ID</th>
                 <th>Nombre</th>
                 <th>Usuarios</th>
+                <th>Documentos</th>
                 <th>Creado</th>
                 <th>Actualizado</th>
                 <th className="text-end">Acciones</th>
@@ -115,6 +116,11 @@ const LegalAppList = () => {
                   <td>
                     <span className="admin-data-count-pill">
                       {app.userLegalApps?.items?.length ?? 0}
+                    </span>
+                  </td>
+                  <td>
+                    <span className="admin-data-count-pill">
+                      {app.legalDocs?.items?.length ?? 0}
                     </span>
                   </td>
                   <td className="text-muted">{formatDateShort(app.createdAt)}</td>

@@ -67,7 +67,12 @@ const LegalDocRecordList = () => {
     }
   };
 
-  const docLabel = (record) => record.legalDoc?.version || shortId(record.legalDocLegalDocRecordsId);
+  const docLabel = (record) => {
+    const doc = record.legalDoc;
+    if (!doc?.version) return shortId(record.legalDocLegalDocRecordsId);
+    const appSuffix = doc.legalApp?.name ? ` · ${doc.legalApp.name}` : '';
+    return `${doc.version}${appSuffix}`;
+  };
 
   if (loading) {
     return (
