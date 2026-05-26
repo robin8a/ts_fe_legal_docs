@@ -34,6 +34,10 @@ import LegalDocRecordList from './LegalDocRecord/LegalDocRecordList';
 import LegalDocRecordCreate from './LegalDocRecord/LegalDocRecordCreate';
 import LegalDocRecordEdit from './LegalDocRecord/LegalDocRecordEdit';
 
+import packageJson from '../../../package.json';
+
+const APP_VERSION = packageJson.version;
+
 const SECTION_META = {
   'legal-apps': {
     title: 'Legal Apps',
@@ -107,6 +111,8 @@ const shouldHideCreateCta = (pathname) => {
   return /\/create$/.test(normalized) || /\/edit$/.test(normalized);
 };
 
+const DISPLAY_VERSION = APP_VERSION.split('.').slice(0, 2).join('.');
+
 const AdminDashboard = () => {
   const { pathname } = useLocation();
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
@@ -149,6 +155,9 @@ const AdminDashboard = () => {
             <div className="text-muted small">admin@legaldocs.io</div>
           </div>
         </div>
+        <div className="admin-sidebar-version" aria-label={`App version ${DISPLAY_VERSION}`}>
+          v{DISPLAY_VERSION}
+        </div>
       </aside>
 
       <Offcanvas
@@ -177,6 +186,9 @@ const AdminDashboard = () => {
               <div className="small fw-medium text-truncate">Admin User</div>
               <div className="text-muted small">admin@legaldocs.io</div>
             </div>
+          </div>
+          <div className="admin-sidebar-version" aria-label={`App version ${DISPLAY_VERSION}`}>
+            v{DISPLAY_VERSION}
           </div>
         </Offcanvas.Body>
       </Offcanvas>

@@ -1300,3 +1300,13 @@
   max-width: min(22rem, 52vw);
   vertical-align: middle;
 }
+
+.admin-sidebar-version {
+  margin-top: 0.5rem;
+  padding: 0.25rem 0.5rem 0;
+  font-size: 0.75rem;
+  color: var(--admin-sidebar-muted);
+  text-align: center;
+  letter-spacing: 0.04em;
+  opacity: 0.8;
+}
