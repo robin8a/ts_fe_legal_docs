@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Form, Button, Alert, Row, Col, InputGroup, Spinner } from 'react-bootstrap';
 import { Link, useNavigate } from 'react-router-dom';
-import { graphqlQuery, graphqlMutation } from '../../../utils/graphqlClient';
+import { graphqlQuery, graphqlMutation, settledListItems } from '../../../utils/graphqlClient';
 import {
   listLegalDocTypes,
   listLegalDocs,
@@ -55,20 +55,10 @@ const LegalDocCreate = () => {
       graphqlQuery(listUsers),
     ]);
 
-    const extractItems = (result, key) => {
-      if (result.status === 'fulfilled') {
-        return result.value?.data?.[key]?.items ?? [];
-      }
-      // AppSync may reject with partial data when individual items violate the
-      // schema (e.g. a non-nullable field is null in the DB). Use the partial
-      // data and skip the null entries instead of dropping everything.
-      return result.reason?.data?.[key]?.items ?? [];
-    };
-
-    const docTypes = extractItems(docTypesResult, 'listLegalDocTypes').filter(Boolean);
-    const parentDocs = extractItems(docsResult, 'listLegalDocs').filter(Boolean);
-    const apps = extractItems(appsResult, 'listLegalApps').filter(Boolean);
-    const usersList = extractItems(usersResult, 'listUsers').filter(Boolean);
+    const docTypes = settledListItems(docTypesResult, 'listLegalDocTypes');
+    const parentDocs = settledListItems(docsResult, 'listLegalDocs');
+    const apps = settledListItems(appsResult, 'listLegalApps');
+    const usersList = settledListItems(usersResult, 'listUsers');
 
     setDocTypes(docTypes);
     setParentDocs(parentDocs);

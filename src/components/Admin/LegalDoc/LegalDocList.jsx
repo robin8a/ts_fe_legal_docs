@@ -1,12 +1,13 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Button, Spinner } from 'react-bootstrap';
+import { Alert, Button, Spinner } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
-import { graphqlQuery, graphqlMutation } from '../../../utils/graphqlClient';
+import { graphqlQueryList, graphqlMutation } from '../../../utils/graphqlClient';
 import { listLegalDocs, deleteLegalDoc } from '../../../graphql_custom';
 import { IconEdit2, IconTrash, IconFileX, IconPlus, IconRefresh } from '../icons/AdminIcons';
 
 const LegalDocList = () => {
   const [legalDocs, setLegalDocs] = useState([]);
+  const [loadWarning, setLoadWarning] = useState('');
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
@@ -17,9 +18,15 @@ const LegalDocList = () => {
       setLoading(true);
     }
     try {
-      const result = await graphqlQuery(listLegalDocs);
-      setLegalDocs(result.data.listLegalDocs.items);
+      const { items, warning } = await graphqlQueryList(listLegalDocs, 'listLegalDocs');
+      setLegalDocs(items);
+      setLoadWarning(warning || '');
+      if (warning) {
+        console.warn('Legal docs loaded with incomplete rows:', warning);
+      }
     } catch (error) {
+      setLegalDocs([]);
+      setLoadWarning('');
       console.error('Error loading legal docs:', error);
     } finally {
       if (silent) {
@@ -81,6 +88,13 @@ const LegalDocList = () => {
 
   return (
     <div className="admin-data-panel position-relative">
+      {loadWarning ? (
+        <Alert variant="warning" className="mb-3 small">
+          Some documents could not be loaded because they have missing data (for example{' '}
+          <code>is_latest</code> is null in the database). Edit those rows in DynamoDB or open
+          them individually after fixing the record.
+        </Alert>
+      ) : null}
       {refreshing ? (
         <div
           className="position-absolute top-0 end-0 m-2 d-flex align-items-center gap-1 small text-muted"

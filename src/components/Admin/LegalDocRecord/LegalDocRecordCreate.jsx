@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Form, Button, Alert, Spinner } from 'react-bootstrap';
 import { Link, useNavigate } from 'react-router-dom';
-import { graphqlQuery, graphqlMutation } from '../../../utils/graphqlClient';
+import { graphqlQueryList, graphqlMutation } from '../../../utils/graphqlClient';
 import { listUserLegalApps, listLegalDocs, createLegalDocRecord } from '../../../graphql_custom';
 import { IconArrowLeft, IconChevronDown } from '../icons/AdminIcons';
 import { shortId } from '../../../utils/adminListFormat';
@@ -29,11 +29,14 @@ const LegalDocRecordCreate = () => {
   const loadReferences = useCallback(async () => {
     try {
       const [ulaResult, docsResult] = await Promise.all([
-        graphqlQuery(listUserLegalApps),
-        graphqlQuery(listLegalDocs),
+        graphqlQueryList(listUserLegalApps, 'listUserLegalApps'),
+        graphqlQueryList(listLegalDocs, 'listLegalDocs'),
       ]);
-      setUserLegalApps(ulaResult.data.listUserLegalApps.items);
-      setLegalDocs(docsResult.data.listLegalDocs.items);
+      setUserLegalApps(ulaResult.items);
+      setLegalDocs(docsResult.items);
+      if (ulaResult.warning || docsResult.warning) {
+        console.warn('Some reference lists loaded with incomplete rows');
+      }
     } catch (err) {
       console.error('Error loading references:', err);
     } finally {

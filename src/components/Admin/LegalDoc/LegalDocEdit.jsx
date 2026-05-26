@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Form, Button, Alert, Row, Col, Spinner } from 'react-bootstrap';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { graphqlQuery, graphqlMutation } from '../../../utils/graphqlClient';
+import { graphqlQuery, graphqlMutation, graphqlQueryList } from '../../../utils/graphqlClient';
 import {
   getLegalDoc,
   listLegalDocTypes,
@@ -63,15 +63,21 @@ const LegalDocEdit = () => {
   const loadReferences = async () => {
     try {
       const [docTypesResult, docsResult, appsResult, usersResult] = await Promise.all([
-        graphqlQuery(listLegalDocTypes),
-        graphqlQuery(listLegalDocs),
-        graphqlQuery(listLegalApps),
-        graphqlQuery(listUsers),
+        graphqlQueryList(listLegalDocTypes, 'listLegalDocTypes'),
+        graphqlQueryList(listLegalDocs, 'listLegalDocs'),
+        graphqlQueryList(listLegalApps, 'listLegalApps'),
+        graphqlQueryList(listUsers, 'listUsers'),
       ]);
-      setDocTypes(docTypesResult.data.listLegalDocTypes.items);
-      setParentDocs(docsResult.data.listLegalDocs.items);
-      setLegalApps(appsResult.data.listLegalApps.items);
-      setUsers(usersResult.data.listUsers.items);
+      setDocTypes(docTypesResult.items);
+      setParentDocs(docsResult.items);
+      setLegalApps(appsResult.items);
+      setUsers(usersResult.items);
+      const warnings = [docTypesResult, docsResult, appsResult, usersResult]
+        .map((r) => r.warning)
+        .filter(Boolean);
+      if (warnings.length) {
+        console.warn('Some reference lists loaded with incomplete rows:', warnings.join('; '));
+      }
     } catch (err) {
       console.error('Error loading references:', err);
     }
