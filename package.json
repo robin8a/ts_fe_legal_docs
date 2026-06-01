@@ -24,7 +24,14 @@
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
-    "clean-install": "node -e \"try{require('fs').rmSync('node_modules',{recursive:true,force:true})}catch(e){} try{require('fs').unlinkSync('package-lock.json')}catch(e){}\" && npm install"
+    "clean-install": "node -e \"try{require('fs').rmSync('node_modules',{recursive:true,force:true})}catch(e){} try{require('fs').unlinkSync('package-lock.json')}catch(e){}\" && npm install",
+    "migrate:assess": "amplify gen2-migration assess",
+    "migrate:lock": "amplify gen2-migration lock",
+    "migrate:lock:rollback": "amplify gen2-migration lock --rollback",
+    "migrate:generate": "amplify gen2-migration generate"
+  },
+  "engines": {
+    "node": ">=20"
   },
   "eslintConfig": {
     "extends": [
