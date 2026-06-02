@@ -58,21 +58,29 @@ type LegalDocRecord @model @auth(rules: [{ allow: public }]) {
 }
 `;
 
+/** Tablas DynamoDB creadas por Amplify Gen 1 (env dev, API ilii2yazv5aexgliknt4oyf3yu). */
+const gen1DevModelTables = {
+  LegalApp: 'LegalApp-ilii2yazv5aexgliknt4oyf3yu-dev',
+  User: 'User-ilii2yazv5aexgliknt4oyf3yu-dev',
+  UserLegalApp: 'UserLegalApp-ilii2yazv5aexgliknt4oyf3yu-dev',
+  LegalDocType: 'LegalDocType-ilii2yazv5aexgliknt4oyf3yu-dev',
+  LegalDoc: 'LegalDoc-ilii2yazv5aexgliknt4oyf3yu-dev',
+  LegalDocRecord: 'LegalDocRecord-ilii2yazv5aexgliknt4oyf3yu-dev',
+} as const;
+
+/**
+ * branchName = nombre de la rama en Amplify Hosting ($AWS_BRANCH), NO el env Gen 1 "dev".
+ * Repo conectado a rama Git/Hosting: main
+ */
+const hostingBranchesUsingGen1Tables = ['main'] as const;
+
 export const data = defineData({
-  migratedAmplifyGen1DynamoDbTableMappings: [
-    {
-      //The "branchName" variable needs to be the same as your deployment branch if you want to reuse your Gen1 app tables
-      branchName: 'dev',
-      modelNameToTableNameMapping: {
-        LegalApp: 'LegalApp-ilii2yazv5aexgliknt4oyf3yu-dev',
-        User: 'User-ilii2yazv5aexgliknt4oyf3yu-dev',
-        UserLegalApp: 'UserLegalApp-ilii2yazv5aexgliknt4oyf3yu-dev',
-        LegalDocType: 'LegalDocType-ilii2yazv5aexgliknt4oyf3yu-dev',
-        LegalDoc: 'LegalDoc-ilii2yazv5aexgliknt4oyf3yu-dev',
-        LegalDocRecord: 'LegalDocRecord-ilii2yazv5aexgliknt4oyf3yu-dev',
-      },
-    },
-  ],
+  migratedAmplifyGen1DynamoDbTableMappings: hostingBranchesUsingGen1Tables.map(
+    (branchName) => ({
+      branchName,
+      modelNameToTableNameMapping: { ...gen1DevModelTables },
+    })
+  ),
   authorizationModes: {
     defaultAuthorizationMode: 'apiKey',
     apiKeyAuthorizationMode: { expiresInDays: 7 },
