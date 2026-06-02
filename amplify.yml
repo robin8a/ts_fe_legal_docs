@@ -10,6 +10,8 @@ frontend:
     preBuild:
       commands:
         - npm ci --legacy-peer-deps
+        - test -f amplify_outputs.json || (echo "amplify_outputs.json missing — backend deploy must run first" && exit 1)
+        - cp amplify_outputs.json src/amplify_outputs.json
     build:
       commands:
         - npm run build

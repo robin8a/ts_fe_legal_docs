@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Container, Card, Form, Button, Alert } from 'react-bootstrap';
 import { useNavigate, useParams } from 'react-router-dom';
-import { API, graphqlOperation } from 'aws-amplify';
 import { graphqlQuery, graphqlMutation } from '../../../utils/graphqlClient';
 import { getLegalDocType, updateLegalDocType } from '../../../graphql_custom';
 

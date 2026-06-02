@@ -1,4 +1,6 @@
-import { API, graphqlOperation } from 'aws-amplify';
+import { generateClient } from 'aws-amplify/api';
+
+const client = generateClient();
 
 const formatGraphqlError = (err) => {
   if (!err) return 'Unknown GraphQL error';
@@ -20,9 +22,12 @@ const formatGraphqlError = (err) => {
 };
 
 const runGraphql = async (doc, variables) => {
-  const operation = graphqlOperation(doc, variables);
   try {
-    const response = await API.graphql({ ...operation, authMode: 'API_KEY' });
+    const response = await client.graphql({
+      query: doc,
+      variables,
+      authMode: 'apiKey',
+    });
     if (response && Array.isArray(response.errors) && response.errors.length) {
       const error = new Error(formatGraphqlError(response));
       error.graphqlErrors = response.errors;
@@ -83,4 +88,3 @@ export const settledListItems = (settledResult, listKey) => {
   }
   return getListItemsFromGraphqlResult(settledResult.reason, listKey);
 };
-

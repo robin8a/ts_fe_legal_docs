@@ -5,7 +5,6 @@ import { Container, Button, Form, Row, Col, Table } from 'react-bootstrap'
 // Auth css custom
 // import Bootstrap from "../../common/themes"
 // GraphQL
-import { API, graphqlOperation } from 'aws-amplify'
 import { listLegalDocTypes, createLegalDocType, updateLegalDocType } from '../../graphql_custom'
 // import { onCreateLegalDocType, onUpdateLegalDocType } from '../../graphql_custom/subscriptions'
 
