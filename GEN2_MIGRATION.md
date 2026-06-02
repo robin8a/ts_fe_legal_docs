@@ -100,10 +100,22 @@ amplify gen2-migration lock --rollback
 
 ### Fase 2 — Generate
 
+> **Windows (proyecto en `E:`):** el CLI genera en `%TEMP%` (suele ser `C:`) y falla al mover `amplify/` con `EXDEV: cross-device link not permitted`. Fuerza temp en la misma unidad **antes** de `generate`:
+>
+> ```bash
+> mkdir -p .tmp
+> export TMP="$PWD/.tmp"
+> export TEMP="$PWD/.tmp"
+> export TMPDIR="$PWD/.tmp"
+> amplify gen2-migration generate --skip-validations
+> ```
+>
+> Si el comando falla a mitad, restaurar con `git restore amplify/ .gitignore amplify.yml package.json`.
+
 ```bash
 git checkout -b gen2-dev
 # Asegurar working tree limpio
-amplify gen2-migration generate
+amplify gen2-migration generate --skip-validations
 ```
 
 Post-generate obligatorio para este proyecto:
