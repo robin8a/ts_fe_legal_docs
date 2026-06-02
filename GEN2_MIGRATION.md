@@ -131,17 +131,17 @@ rm -rf node_modules package-lock.json
 npm install
 ```
 
-### Fase 3 — Deploy Gen 2 (paralelo)
+### Fase 3 — Deploy Gen 2 vía Amplify Hosting (recomendado; sin sandbox)
 
-**Opción A — Amplify Hosting:** push de `gen2-dev`, en consola añadir rama al app `d1h0lpobqmskz4`, desplegar y esperar `amplify_outputs.json`.
+El **sandbox** no conviene para reutilizar tablas Gen 1 (conflicto CloudFormation). Usar **Hosting** con rama **`dev`** y `branchName: 'dev'` en `amplify/data/resource.ts`.
 
-**Opción B — Sandbox local:**
+1. `amplify.yml` incluye fase `backend` con `npx ampx pipeline-deploy`.
+2. Commit + push a la rama que Amplify Console construye como **`dev`**.
+3. En consola: app `d1h0lpobqmskz4` → rama `dev` → build (Amazon Linux 2023, Node ≥ 20).
+4. Tras el build, descargar o usar `amplify_outputs.json` del artefacto / consola.
+5. Probar `listLegalApps` en la API Gen 2 y comparar con Gen 1.
 
-```bash
-npx ampx sandbox
-```
-
-Probar GraphQL, CRUD de modelos y acceso a datos existentes (DynamoDB compartido desde el deploy).
+**No usar** `npx ampx sandbox` para validar datos compartidos con Gen 1.
 
 ### Fase 4 — Refactor (irreversible para updates Gen 1)
 
