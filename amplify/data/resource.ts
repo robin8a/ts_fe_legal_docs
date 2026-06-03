@@ -75,6 +75,7 @@ const gen1DevModelTables = {
 const hostingBranchesUsingGen1Tables = ['main'] as const;
 
 export const data = defineData({
+  name: 'tsbelegaldocsapi-dev-2',
   migratedAmplifyGen1DynamoDbTableMappings: hostingBranchesUsingGen1Tables.map(
     (branchName) => ({
       branchName,
