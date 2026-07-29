@@ -1,0 +1,7 @@
+{
+    "AppSyncApiName": "tsbelegaldocsapi",
+    "DynamoDBBillingMode": "PAY_PER_REQUEST",
+    "DynamoDBEnableServerSideEncryption": false,
+    "S3DeploymentBucket": "amplify-tsbelegaldocsapi-dev-6ee97-deployment",
+    "S3DeploymentRootKey": "amplify-appsync-files/8a63223f1d469d3f64417d2dc66da010f5700051"
+}

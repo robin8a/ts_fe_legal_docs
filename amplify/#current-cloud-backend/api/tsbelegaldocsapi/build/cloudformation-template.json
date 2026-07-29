@@ -1,0 +1,969 @@
+{
+    "Parameters": {
+        "env": {
+            "Type": "String",
+            "Default": "NONE"
+        },
+        "AppSyncApiName": {
+            "Type": "String",
+            "Default": "AppSyncSimpleTransform"
+        },
+        "DynamoDBModelTableReadIOPS": {
+            "Type": "Number",
+            "Default": 5,
+            "Description": "The number of read IOPS the table should support."
+        },
+        "DynamoDBModelTableWriteIOPS": {
+            "Type": "Number",
+            "Default": 5,
+            "Description": "The number of write IOPS the table should support."
+        },
+        "DynamoDBBillingMode": {
+            "Type": "String",
+            "Default": "PAY_PER_REQUEST",
+            "AllowedValues": [
+                "PAY_PER_REQUEST",
+                "PROVISIONED"
+            ],
+            "Description": "Configure @model types to create DynamoDB tables with PAY_PER_REQUEST or PROVISIONED billing modes."
+        },
+        "DynamoDBEnablePointInTimeRecovery": {
+            "Type": "String",
+            "Default": "false",
+            "AllowedValues": [
+                "true",
+                "false"
+            ],
+            "Description": "Whether to enable Point in Time Recovery on the table."
+        },
+        "DynamoDBEnableServerSideEncryption": {
+            "Type": "String",
+            "Default": "true",
+            "AllowedValues": [
+                "true",
+                "false"
+            ],
+            "Description": "Enable server side encryption powered by KMS."
+        },
+        "S3DeploymentBucket": {
+            "Type": "String",
+            "Description": "An S3 Bucket name where assets are deployed"
+        },
+        "S3DeploymentRootKey": {
+            "Type": "String",
+            "Description": "An S3 key relative to the S3DeploymentBucket that points to the root of the deployment directory."
+        }
+    },
+    "Resources": {
+        "GraphQLAPI": {
+            "Type": "AWS::AppSync::GraphQLApi",
+            "Properties": {
+                "AuthenticationType": "API_KEY",
+                "Name": {
+                    "Fn::Join": [
+                        "",
+                        [
+                            {
+                                "Ref": "AppSyncApiName"
+                            },
+                            "-",
+                            {
+                                "Ref": "env"
+                            }
+                        ]
+                    ]
+                }
+            }
+        },
+        "GraphQLAPITransformerSchema3CB2AE18": {
+            "Type": "AWS::AppSync::GraphQLSchema",
+            "Properties": {
+                "ApiId": {
+                    "Fn::GetAtt": [
+                        "GraphQLAPI",
+                        "ApiId"
+                    ]
+                },
+                "DefinitionS3Location": {
+                    "Fn::Join": [
+                        "",
+                        [
+                            "s3://",
+                            {
+                                "Ref": "S3DeploymentBucket"
+                            },
+                            "/",
+                            {
+                                "Ref": "S3DeploymentRootKey"
+                            },
+                            "/schema.graphql"
+                        ]
+                    ]
+                }
+            }
+        },
+        "GraphQLAPIDefaultApiKey215A6DD7": {
+            "Type": "AWS::AppSync::ApiKey",
+            "Properties": {
+                "ApiId": {
+                    "Fn::GetAtt": [
+                        "GraphQLAPI",
+                        "ApiId"
+                    ]
+                },
+                "Expires": 1778883769
+            }
+        },
+        "GraphQLAPINONEDS95A13CF0": {
+            "Type": "AWS::AppSync::DataSource",
+            "Properties": {
+                "ApiId": {
+                    "Fn::GetAtt": [
+                        "GraphQLAPI",
+                        "ApiId"
+                    ]
+                },
+                "Description": "None Data Source for Pipeline functions",
+                "Name": "NONE_DS",
+                "Type": "NONE"
+            }
+        },
+        "LegalApp": {
+            "Type": "AWS::CloudFormation::Stack",
+            "Properties": {
+                "Parameters": {
+                    "DynamoDBModelTableReadIOPS": {
+                        "Ref": "DynamoDBModelTableReadIOPS"
+                    },
+                    "DynamoDBModelTableWriteIOPS": {
+                        "Ref": "DynamoDBModelTableWriteIOPS"
+                    },
+                    "DynamoDBBillingMode": {
+                        "Ref": "DynamoDBBillingMode"
+                    },
+                    "DynamoDBEnablePointInTimeRecovery": {
+                        "Ref": "DynamoDBEnablePointInTimeRecovery"
+                    },
+                    "DynamoDBEnableServerSideEncryption": {
+                        "Ref": "DynamoDBEnableServerSideEncryption"
+                    },
+                    "referencetotransformerrootstackenv10C5A902Ref": {
+                        "Ref": "env"
+                    },
+                    "referencetotransformerrootstackGraphQLAPI20497F53ApiId": {
+                        "Fn::GetAtt": [
+                            "GraphQLAPI",
+                            "ApiId"
+                        ]
+                    },
+                    "referencetotransformerrootstackGraphQLAPINONEDS2BA9D1C8Name": {
+                        "Fn::GetAtt": [
+                            "GraphQLAPINONEDS95A13CF0",
+                            "Name"
+                        ]
+                    },
+                    "referencetotransformerrootstackS3DeploymentBucket7592718ARef": {
+                        "Ref": "S3DeploymentBucket"
+                    },
+                    "referencetotransformerrootstackS3DeploymentRootKeyA71EA735Ref": {
+                        "Ref": "S3DeploymentRootKey"
+                    }
+                },
+                "TemplateURL": {
+                    "Fn::Join": [
+                        "",
+                        [
+                            "https://s3.",
+                            {
+                                "Ref": "AWS::Region"
+                            },
+                            ".",
+                            {
+                                "Ref": "AWS::URLSuffix"
+                            },
+                            "/",
+                            {
+                                "Ref": "S3DeploymentBucket"
+                            },
+                            "/",
+                            {
+                                "Ref": "S3DeploymentRootKey"
+                            },
+                            "/stacks/LegalApp.json"
+                        ]
+                    ]
+                }
+            },
+            "DependsOn": [
+                "GraphQLAPITransformerSchema3CB2AE18"
+            ]
+        },
+        "User": {
+            "Type": "AWS::CloudFormation::Stack",
+            "Properties": {
+                "Parameters": {
+                    "DynamoDBModelTableReadIOPS": {
+                        "Ref": "DynamoDBModelTableReadIOPS"
+                    },
+                    "DynamoDBModelTableWriteIOPS": {
+                        "Ref": "DynamoDBModelTableWriteIOPS"
+                    },
+                    "DynamoDBBillingMode": {
+                        "Ref": "DynamoDBBillingMode"
+                    },
+                    "DynamoDBEnablePointInTimeRecovery": {
+                        "Ref": "DynamoDBEnablePointInTimeRecovery"
+                    },
+                    "DynamoDBEnableServerSideEncryption": {
+                        "Ref": "DynamoDBEnableServerSideEncryption"
+                    },
+                    "referencetotransformerrootstackenv10C5A902Ref": {
+                        "Ref": "env"
+                    },
+                    "referencetotransformerrootstackGraphQLAPI20497F53ApiId": {
+                        "Fn::GetAtt": [
+                            "GraphQLAPI",
+                            "ApiId"
+                        ]
+                    },
+                    "referencetotransformerrootstackS3DeploymentBucket7592718ARef": {
+                        "Ref": "S3DeploymentBucket"
+                    },
+                    "referencetotransformerrootstackS3DeploymentRootKeyA71EA735Ref": {
+                        "Ref": "S3DeploymentRootKey"
+                    },
+                    "referencetotransformerrootstackLegalAppNestedStackLegalAppNestedStackResource4493E2FDOutputstransformerrootstackLegalAppQuerygetLegalAppauth0FunctionQuerygetLegalAppauth0FunctionAppSyncFunction599CBF07FunctionId": {
+                        "Fn::GetAtt": [
+                            "LegalApp",
+                            "Outputs.transformerrootstackLegalAppQuerygetLegalAppauth0FunctionQuerygetLegalAppauth0FunctionAppSyncFunction599CBF07FunctionId"
+                        ]
+                    },
+                    "referencetotransformerrootstackLegalAppNestedStackLegalAppNestedStackResource4493E2FDOutputstransformerrootstackLegalAppQuerygetLegalApppostAuth0FunctionQuerygetLegalApppostAuth0FunctionAppSyncFunctionA3CF76B7FunctionId": {
+                        "Fn::GetAtt": [
+                            "LegalApp",
+                            "Outputs.transformerrootstackLegalAppQuerygetLegalApppostAuth0FunctionQuerygetLegalApppostAuth0FunctionAppSyncFunctionA3CF76B7FunctionId"
+                        ]
+                    },
+                    "referencetotransformerrootstackLegalAppNestedStackLegalAppNestedStackResource4493E2FDOutputstransformerrootstackLegalAppMutationcreateLegalAppinit0FunctionMutationcreateLegalAppinit0FunctionAppSyncFunction1C87A5F9FunctionId": {
+                        "Fn::GetAtt": [
+                            "LegalApp",
+                            "Outputs.transformerrootstackLegalAppMutationcreateLegalAppinit0FunctionMutationcreateLegalAppinit0FunctionAppSyncFunction1C87A5F9FunctionId"
+                        ]
+                    },
+                    "referencetotransformerrootstackLegalAppNestedStackLegalAppNestedStackResource4493E2FDOutputstransformerrootstackLegalAppMutationcreateLegalAppauth0FunctionMutationcreateLegalAppauth0FunctionAppSyncFunction1E4E0099FunctionId": {
+                        "Fn::GetAtt": [
+                            "LegalApp",
+                            "Outputs.transformerrootstackLegalAppMutationcreateLegalAppauth0FunctionMutationcreateLegalAppauth0FunctionAppSyncFunction1E4E0099FunctionId"
+                        ]
+                    },
+                    "referencetotransformerrootstackLegalAppNestedStackLegalAppNestedStackResource4493E2FDOutputstransformerrootstackLegalAppMutationupdateLegalAppinit0FunctionMutationupdateLegalAppinit0FunctionAppSyncFunction7A0DBBF7FunctionId": {
+                        "Fn::GetAtt": [
+                            "LegalApp",
+                            "Outputs.transformerrootstackLegalAppMutationupdateLegalAppinit0FunctionMutationupdateLegalAppinit0FunctionAppSyncFunction7A0DBBF7FunctionId"
+                        ]
+                    },
+                    "referencetotransformerrootstackLegalAppNestedStackLegalAppNestedStackResource4493E2FDOutputstransformerrootstackLegalAppSubscriptiononCreateLegalAppauth0FunctionSubscriptiononCreateLegalAppauth0FunctionAppSyncFunction9A8EA6DEFunctionId": {
+                        "Fn::GetAtt": [
+                            "LegalApp",
+                            "Outputs.transformerrootstackLegalAppSubscriptiononCreateLegalAppauth0FunctionSubscriptiononCreateLegalAppauth0FunctionAppSyncFunction9A8EA6DEFunctionId"
+                        ]
+                    },
+                    "referencetotransformerrootstackLegalAppNestedStackLegalAppNestedStackResource4493E2FDOutputstransformerrootstackLegalAppSubscriptionOnCreateLegalAppDataResolverFnSubscriptionOnCreateLegalAppDataResolverFnAppSyncFunctionC970649EFunctionId": {
+                        "Fn::GetAtt": [
+                            "LegalApp",
+                            "Outputs.transformerrootstackLegalAppSubscriptionOnCreateLegalAppDataResolverFnSubscriptionOnCreateLegalAppDataResolverFnAppSyncFunctionC970649EFunctionId"
+                        ]
+                    }
+                },
+                "TemplateURL": {
+                    "Fn::Join": [
+                        "",
+                        [
+                            "https://s3.",
+                            {
+                                "Ref": "AWS::Region"
+                            },
+                            ".",
+                            {
+                                "Ref": "AWS::URLSuffix"
+                            },
+                            "/",
+                            {
+                                "Ref": "S3DeploymentBucket"
+                            },
+                            "/",
+                            {
+                                "Ref": "S3DeploymentRootKey"
+                            },
+                            "/stacks/User.json"
+                        ]
+                    ]
+                }
+            },
+            "DependsOn": [
+                "GraphQLAPITransformerSchema3CB2AE18"
+            ]
+        },
+        "LegalDocType": {
+            "Type": "AWS::CloudFormation::Stack",
+            "Properties": {
+                "Parameters": {
+                    "DynamoDBModelTableReadIOPS": {
+                        "Ref": "DynamoDBModelTableReadIOPS"
+                    },
+                    "DynamoDBModelTableWriteIOPS": {
+                        "Ref": "DynamoDBModelTableWriteIOPS"
+                    },
+                    "DynamoDBBillingMode": {
+                        "Ref": "DynamoDBBillingMode"
+                    },
+                    "DynamoDBEnablePointInTimeRecovery": {
+                        "Ref": "DynamoDBEnablePointInTimeRecovery"
+                    },
+                    "DynamoDBEnableServerSideEncryption": {
+                        "Ref": "DynamoDBEnableServerSideEncryption"
+                    },
+                    "referencetotransformerrootstackenv10C5A902Ref": {
+                        "Ref": "env"
+                    },
+                    "referencetotransformerrootstackGraphQLAPI20497F53ApiId": {
+                        "Fn::GetAtt": [
+                            "GraphQLAPI",
+                            "ApiId"
+                        ]
+                    },
+                    "referencetotransformerrootstackS3DeploymentBucket7592718ARef": {
+                        "Ref": "S3DeploymentBucket"
+                    },
+                    "referencetotransformerrootstackS3DeploymentRootKeyA71EA735Ref": {
+                        "Ref": "S3DeploymentRootKey"
+                    },
+                    "referencetotransformerrootstackLegalAppNestedStackLegalAppNestedStackResource4493E2FDOutputstransformerrootstackLegalAppQuerygetLegalAppauth0FunctionQuerygetLegalAppauth0FunctionAppSyncFunction599CBF07FunctionId": {
+                        "Fn::GetAtt": [
+                            "LegalApp",
+                            "Outputs.transformerrootstackLegalAppQuerygetLegalAppauth0FunctionQuerygetLegalAppauth0FunctionAppSyncFunction599CBF07FunctionId"
+                        ]
+                    },
+                    "referencetotransformerrootstackLegalAppNestedStackLegalAppNestedStackResource4493E2FDOutputstransformerrootstackLegalAppQuerygetLegalApppostAuth0FunctionQuerygetLegalApppostAuth0FunctionAppSyncFunctionA3CF76B7FunctionId": {
+                        "Fn::GetAtt": [
+                            "LegalApp",
+                            "Outputs.transformerrootstackLegalAppQuerygetLegalApppostAuth0FunctionQuerygetLegalApppostAuth0FunctionAppSyncFunctionA3CF76B7FunctionId"
+                        ]
+                    },
+                    "referencetotransformerrootstackLegalAppNestedStackLegalAppNestedStackResource4493E2FDOutputstransformerrootstackLegalAppMutationcreateLegalAppinit0FunctionMutationcreateLegalAppinit0FunctionAppSyncFunction1C87A5F9FunctionId": {
+                        "Fn::GetAtt": [
+                            "LegalApp",
+                            "Outputs.transformerrootstackLegalAppMutationcreateLegalAppinit0FunctionMutationcreateLegalAppinit0FunctionAppSyncFunction1C87A5F9FunctionId"
+                        ]
+                    },
+                    "referencetotransformerrootstackLegalAppNestedStackLegalAppNestedStackResource4493E2FDOutputstransformerrootstackLegalAppMutationcreateLegalAppauth0FunctionMutationcreateLegalAppauth0FunctionAppSyncFunction1E4E0099FunctionId": {
+                        "Fn::GetAtt": [
+                            "LegalApp",
+                            "Outputs.transformerrootstackLegalAppMutationcreateLegalAppauth0FunctionMutationcreateLegalAppauth0FunctionAppSyncFunction1E4E0099FunctionId"
+                        ]
+                    },
+                    "referencetotransformerrootstackLegalAppNestedStackLegalAppNestedStackResource4493E2FDOutputstransformerrootstackLegalAppMutationupdateLegalAppinit0FunctionMutationupdateLegalAppinit0FunctionAppSyncFunction7A0DBBF7FunctionId": {
+                        "Fn::GetAtt": [
+                            "LegalApp",
+                            "Outputs.transformerrootstackLegalAppMutationupdateLegalAppinit0FunctionMutationupdateLegalAppinit0FunctionAppSyncFunction7A0DBBF7FunctionId"
+                        ]
+                    },
+                    "referencetotransformerrootstackLegalAppNestedStackLegalAppNestedStackResource4493E2FDOutputstransformerrootstackLegalAppSubscriptiononCreateLegalAppauth0FunctionSubscriptiononCreateLegalAppauth0FunctionAppSyncFunction9A8EA6DEFunctionId": {
+                        "Fn::GetAtt": [
+                            "LegalApp",
+                            "Outputs.transformerrootstackLegalAppSubscriptiononCreateLegalAppauth0FunctionSubscriptiononCreateLegalAppauth0FunctionAppSyncFunction9A8EA6DEFunctionId"
+                        ]
+                    },
+                    "referencetotransformerrootstackLegalAppNestedStackLegalAppNestedStackResource4493E2FDOutputstransformerrootstackLegalAppSubscriptionOnCreateLegalAppDataResolverFnSubscriptionOnCreateLegalAppDataResolverFnAppSyncFunctionC970649EFunctionId": {
+                        "Fn::GetAtt": [
+                            "LegalApp",
+                            "Outputs.transformerrootstackLegalAppSubscriptionOnCreateLegalAppDataResolverFnSubscriptionOnCreateLegalAppDataResolverFnAppSyncFunctionC970649EFunctionId"
+                        ]
+                    }
+                },
+                "TemplateURL": {
+                    "Fn::Join": [
+                        "",
+                        [
+                            "https://s3.",
+                            {
+                                "Ref": "AWS::Region"
+                            },
+                            ".",
+                            {
+                                "Ref": "AWS::URLSuffix"
+                            },
+                            "/",
+                            {
+                                "Ref": "S3DeploymentBucket"
+                            },
+                            "/",
+                            {
+                                "Ref": "S3DeploymentRootKey"
+                            },
+                            "/stacks/LegalDocType.json"
+                        ]
+                    ]
+                }
+            },
+            "DependsOn": [
+                "GraphQLAPITransformerSchema3CB2AE18"
+            ]
+        },
+        "LegalDoc": {
+            "Type": "AWS::CloudFormation::Stack",
+            "Properties": {
+                "Parameters": {
+                    "DynamoDBModelTableReadIOPS": {
+                        "Ref": "DynamoDBModelTableReadIOPS"
+                    },
+                    "DynamoDBModelTableWriteIOPS": {
+                        "Ref": "DynamoDBModelTableWriteIOPS"
+                    },
+                    "DynamoDBBillingMode": {
+                        "Ref": "DynamoDBBillingMode"
+                    },
+                    "DynamoDBEnablePointInTimeRecovery": {
+                        "Ref": "DynamoDBEnablePointInTimeRecovery"
+                    },
+                    "DynamoDBEnableServerSideEncryption": {
+                        "Ref": "DynamoDBEnableServerSideEncryption"
+                    },
+                    "referencetotransformerrootstackenv10C5A902Ref": {
+                        "Ref": "env"
+                    },
+                    "referencetotransformerrootstackGraphQLAPI20497F53ApiId": {
+                        "Fn::GetAtt": [
+                            "GraphQLAPI",
+                            "ApiId"
+                        ]
+                    },
+                    "referencetotransformerrootstackS3DeploymentBucket7592718ARef": {
+                        "Ref": "S3DeploymentBucket"
+                    },
+                    "referencetotransformerrootstackS3DeploymentRootKeyA71EA735Ref": {
+                        "Ref": "S3DeploymentRootKey"
+                    },
+                    "referencetotransformerrootstackLegalAppNestedStackLegalAppNestedStackResource4493E2FDOutputstransformerrootstackLegalAppQuerygetLegalAppauth0FunctionQuerygetLegalAppauth0FunctionAppSyncFunction599CBF07FunctionId": {
+                        "Fn::GetAtt": [
+                            "LegalApp",
+                            "Outputs.transformerrootstackLegalAppQuerygetLegalAppauth0FunctionQuerygetLegalAppauth0FunctionAppSyncFunction599CBF07FunctionId"
+                        ]
+                    },
+                    "referencetotransformerrootstackLegalAppNestedStackLegalAppNestedStackResource4493E2FDOutputstransformerrootstackLegalAppQuerygetLegalApppostAuth0FunctionQuerygetLegalApppostAuth0FunctionAppSyncFunctionA3CF76B7FunctionId": {
+                        "Fn::GetAtt": [
+                            "LegalApp",
+                            "Outputs.transformerrootstackLegalAppQuerygetLegalApppostAuth0FunctionQuerygetLegalApppostAuth0FunctionAppSyncFunctionA3CF76B7FunctionId"
+                        ]
+                    },
+                    "referencetotransformerrootstackLegalAppNestedStackLegalAppNestedStackResource4493E2FDOutputstransformerrootstackLegalAppMutationcreateLegalAppinit0FunctionMutationcreateLegalAppinit0FunctionAppSyncFunction1C87A5F9FunctionId": {
+                        "Fn::GetAtt": [
+                            "LegalApp",
+                            "Outputs.transformerrootstackLegalAppMutationcreateLegalAppinit0FunctionMutationcreateLegalAppinit0FunctionAppSyncFunction1C87A5F9FunctionId"
+                        ]
+                    },
+                    "referencetotransformerrootstackLegalAppNestedStackLegalAppNestedStackResource4493E2FDOutputstransformerrootstackLegalAppMutationcreateLegalAppauth0FunctionMutationcreateLegalAppauth0FunctionAppSyncFunction1E4E0099FunctionId": {
+                        "Fn::GetAtt": [
+                            "LegalApp",
+                            "Outputs.transformerrootstackLegalAppMutationcreateLegalAppauth0FunctionMutationcreateLegalAppauth0FunctionAppSyncFunction1E4E0099FunctionId"
+                        ]
+                    },
+                    "referencetotransformerrootstackLegalAppNestedStackLegalAppNestedStackResource4493E2FDOutputstransformerrootstackLegalAppMutationupdateLegalAppinit0FunctionMutationupdateLegalAppinit0FunctionAppSyncFunction7A0DBBF7FunctionId": {
+                        "Fn::GetAtt": [
+                            "LegalApp",
+                            "Outputs.transformerrootstackLegalAppMutationupdateLegalAppinit0FunctionMutationupdateLegalAppinit0FunctionAppSyncFunction7A0DBBF7FunctionId"
+                        ]
+                    },
+                    "referencetotransformerrootstackLegalAppNestedStackLegalAppNestedStackResource4493E2FDOutputstransformerrootstackLegalAppSubscriptiononCreateLegalAppauth0FunctionSubscriptiononCreateLegalAppauth0FunctionAppSyncFunction9A8EA6DEFunctionId": {
+                        "Fn::GetAtt": [
+                            "LegalApp",
+                            "Outputs.transformerrootstackLegalAppSubscriptiononCreateLegalAppauth0FunctionSubscriptiononCreateLegalAppauth0FunctionAppSyncFunction9A8EA6DEFunctionId"
+                        ]
+                    },
+                    "referencetotransformerrootstackLegalAppNestedStackLegalAppNestedStackResource4493E2FDOutputstransformerrootstackLegalAppSubscriptionOnCreateLegalAppDataResolverFnSubscriptionOnCreateLegalAppDataResolverFnAppSyncFunctionC970649EFunctionId": {
+                        "Fn::GetAtt": [
+                            "LegalApp",
+                            "Outputs.transformerrootstackLegalAppSubscriptionOnCreateLegalAppDataResolverFnSubscriptionOnCreateLegalAppDataResolverFnAppSyncFunctionC970649EFunctionId"
+                        ]
+                    }
+                },
+                "TemplateURL": {
+                    "Fn::Join": [
+                        "",
+                        [
+                            "https://s3.",
+                            {
+                                "Ref": "AWS::Region"
+                            },
+                            ".",
+                            {
+                                "Ref": "AWS::URLSuffix"
+                            },
+                            "/",
+                            {
+                                "Ref": "S3DeploymentBucket"
+                            },
+                            "/",
+                            {
+                                "Ref": "S3DeploymentRootKey"
+                            },
+                            "/stacks/LegalDoc.json"
+                        ]
+                    ]
+                }
+            },
+            "DependsOn": [
+                "GraphQLAPITransformerSchema3CB2AE18"
+            ]
+        },
+        "LegalDocRecord": {
+            "Type": "AWS::CloudFormation::Stack",
+            "Properties": {
+                "Parameters": {
+                    "DynamoDBModelTableReadIOPS": {
+                        "Ref": "DynamoDBModelTableReadIOPS"
+                    },
+                    "DynamoDBModelTableWriteIOPS": {
+                        "Ref": "DynamoDBModelTableWriteIOPS"
+                    },
+                    "DynamoDBBillingMode": {
+                        "Ref": "DynamoDBBillingMode"
+                    },
+                    "DynamoDBEnablePointInTimeRecovery": {
+                        "Ref": "DynamoDBEnablePointInTimeRecovery"
+                    },
+                    "DynamoDBEnableServerSideEncryption": {
+                        "Ref": "DynamoDBEnableServerSideEncryption"
+                    },
+                    "referencetotransformerrootstackenv10C5A902Ref": {
+                        "Ref": "env"
+                    },
+                    "referencetotransformerrootstackGraphQLAPI20497F53ApiId": {
+                        "Fn::GetAtt": [
+                            "GraphQLAPI",
+                            "ApiId"
+                        ]
+                    },
+                    "referencetotransformerrootstackS3DeploymentBucket7592718ARef": {
+                        "Ref": "S3DeploymentBucket"
+                    },
+                    "referencetotransformerrootstackS3DeploymentRootKeyA71EA735Ref": {
+                        "Ref": "S3DeploymentRootKey"
+                    },
+                    "referencetotransformerrootstackLegalAppNestedStackLegalAppNestedStackResource4493E2FDOutputstransformerrootstackLegalAppQuerygetLegalAppauth0FunctionQuerygetLegalAppauth0FunctionAppSyncFunction599CBF07FunctionId": {
+                        "Fn::GetAtt": [
+                            "LegalApp",
+                            "Outputs.transformerrootstackLegalAppQuerygetLegalAppauth0FunctionQuerygetLegalAppauth0FunctionAppSyncFunction599CBF07FunctionId"
+                        ]
+                    },
+                    "referencetotransformerrootstackLegalAppNestedStackLegalAppNestedStackResource4493E2FDOutputstransformerrootstackLegalAppQuerygetLegalApppostAuth0FunctionQuerygetLegalApppostAuth0FunctionAppSyncFunctionA3CF76B7FunctionId": {
+                        "Fn::GetAtt": [
+                            "LegalApp",
+                            "Outputs.transformerrootstackLegalAppQuerygetLegalApppostAuth0FunctionQuerygetLegalApppostAuth0FunctionAppSyncFunctionA3CF76B7FunctionId"
+                        ]
+                    },
+                    "referencetotransformerrootstackLegalAppNestedStackLegalAppNestedStackResource4493E2FDOutputstransformerrootstackLegalAppMutationcreateLegalAppinit0FunctionMutationcreateLegalAppinit0FunctionAppSyncFunction1C87A5F9FunctionId": {
+                        "Fn::GetAtt": [
+                            "LegalApp",
+                            "Outputs.transformerrootstackLegalAppMutationcreateLegalAppinit0FunctionMutationcreateLegalAppinit0FunctionAppSyncFunction1C87A5F9FunctionId"
+                        ]
+                    },
+                    "referencetotransformerrootstackLegalAppNestedStackLegalAppNestedStackResource4493E2FDOutputstransformerrootstackLegalAppMutationcreateLegalAppauth0FunctionMutationcreateLegalAppauth0FunctionAppSyncFunction1E4E0099FunctionId": {
+                        "Fn::GetAtt": [
+                            "LegalApp",
+                            "Outputs.transformerrootstackLegalAppMutationcreateLegalAppauth0FunctionMutationcreateLegalAppauth0FunctionAppSyncFunction1E4E0099FunctionId"
+                        ]
+                    },
+                    "referencetotransformerrootstackLegalAppNestedStackLegalAppNestedStackResource4493E2FDOutputstransformerrootstackLegalAppMutationupdateLegalAppinit0FunctionMutationupdateLegalAppinit0FunctionAppSyncFunction7A0DBBF7FunctionId": {
+                        "Fn::GetAtt": [
+                            "LegalApp",
+                            "Outputs.transformerrootstackLegalAppMutationupdateLegalAppinit0FunctionMutationupdateLegalAppinit0FunctionAppSyncFunction7A0DBBF7FunctionId"
+                        ]
+                    },
+                    "referencetotransformerrootstackLegalAppNestedStackLegalAppNestedStackResource4493E2FDOutputstransformerrootstackLegalAppSubscriptiononCreateLegalAppauth0FunctionSubscriptiononCreateLegalAppauth0FunctionAppSyncFunction9A8EA6DEFunctionId": {
+                        "Fn::GetAtt": [
+                            "LegalApp",
+                            "Outputs.transformerrootstackLegalAppSubscriptiononCreateLegalAppauth0FunctionSubscriptiononCreateLegalAppauth0FunctionAppSyncFunction9A8EA6DEFunctionId"
+                        ]
+                    },
+                    "referencetotransformerrootstackLegalAppNestedStackLegalAppNestedStackResource4493E2FDOutputstransformerrootstackLegalAppSubscriptionOnCreateLegalAppDataResolverFnSubscriptionOnCreateLegalAppDataResolverFnAppSyncFunctionC970649EFunctionId": {
+                        "Fn::GetAtt": [
+                            "LegalApp",
+                            "Outputs.transformerrootstackLegalAppSubscriptionOnCreateLegalAppDataResolverFnSubscriptionOnCreateLegalAppDataResolverFnAppSyncFunctionC970649EFunctionId"
+                        ]
+                    }
+                },
+                "TemplateURL": {
+                    "Fn::Join": [
+                        "",
+                        [
+                            "https://s3.",
+                            {
+                                "Ref": "AWS::Region"
+                            },
+                            ".",
+                            {
+                                "Ref": "AWS::URLSuffix"
+                            },
+                            "/",
+                            {
+                                "Ref": "S3DeploymentBucket"
+                            },
+                            "/",
+                            {
+                                "Ref": "S3DeploymentRootKey"
+                            },
+                            "/stacks/LegalDocRecord.json"
+                        ]
+                    ]
+                }
+            },
+            "DependsOn": [
+                "GraphQLAPITransformerSchema3CB2AE18"
+            ]
+        },
+        "Order": {
+            "Type": "AWS::CloudFormation::Stack",
+            "Properties": {
+                "Parameters": {
+                    "DynamoDBModelTableReadIOPS": {
+                        "Ref": "DynamoDBModelTableReadIOPS"
+                    },
+                    "DynamoDBModelTableWriteIOPS": {
+                        "Ref": "DynamoDBModelTableWriteIOPS"
+                    },
+                    "DynamoDBBillingMode": {
+                        "Ref": "DynamoDBBillingMode"
+                    },
+                    "DynamoDBEnablePointInTimeRecovery": {
+                        "Ref": "DynamoDBEnablePointInTimeRecovery"
+                    },
+                    "DynamoDBEnableServerSideEncryption": {
+                        "Ref": "DynamoDBEnableServerSideEncryption"
+                    },
+                    "referencetotransformerrootstackenv10C5A902Ref": {
+                        "Ref": "env"
+                    },
+                    "referencetotransformerrootstackGraphQLAPI20497F53ApiId": {
+                        "Fn::GetAtt": [
+                            "GraphQLAPI",
+                            "ApiId"
+                        ]
+                    },
+                    "referencetotransformerrootstackS3DeploymentBucket7592718ARef": {
+                        "Ref": "S3DeploymentBucket"
+                    },
+                    "referencetotransformerrootstackS3DeploymentRootKeyA71EA735Ref": {
+                        "Ref": "S3DeploymentRootKey"
+                    },
+                    "referencetotransformerrootstackLegalAppNestedStackLegalAppNestedStackResource4493E2FDOutputstransformerrootstackLegalAppQuerygetLegalAppauth0FunctionQuerygetLegalAppauth0FunctionAppSyncFunction599CBF07FunctionId": {
+                        "Fn::GetAtt": [
+                            "LegalApp",
+                            "Outputs.transformerrootstackLegalAppQuerygetLegalAppauth0FunctionQuerygetLegalAppauth0FunctionAppSyncFunction599CBF07FunctionId"
+                        ]
+                    },
+                    "referencetotransformerrootstackLegalAppNestedStackLegalAppNestedStackResource4493E2FDOutputstransformerrootstackLegalAppQuerygetLegalApppostAuth0FunctionQuerygetLegalApppostAuth0FunctionAppSyncFunctionA3CF76B7FunctionId": {
+                        "Fn::GetAtt": [
+                            "LegalApp",
+                            "Outputs.transformerrootstackLegalAppQuerygetLegalApppostAuth0FunctionQuerygetLegalApppostAuth0FunctionAppSyncFunctionA3CF76B7FunctionId"
+                        ]
+                    },
+                    "referencetotransformerrootstackLegalAppNestedStackLegalAppNestedStackResource4493E2FDOutputstransformerrootstackLegalAppMutationcreateLegalAppinit0FunctionMutationcreateLegalAppinit0FunctionAppSyncFunction1C87A5F9FunctionId": {
+                        "Fn::GetAtt": [
+                            "LegalApp",
+                            "Outputs.transformerrootstackLegalAppMutationcreateLegalAppinit0FunctionMutationcreateLegalAppinit0FunctionAppSyncFunction1C87A5F9FunctionId"
+                        ]
+                    },
+                    "referencetotransformerrootstackLegalAppNestedStackLegalAppNestedStackResource4493E2FDOutputstransformerrootstackLegalAppMutationcreateLegalAppauth0FunctionMutationcreateLegalAppauth0FunctionAppSyncFunction1E4E0099FunctionId": {
+                        "Fn::GetAtt": [
+                            "LegalApp",
+                            "Outputs.transformerrootstackLegalAppMutationcreateLegalAppauth0FunctionMutationcreateLegalAppauth0FunctionAppSyncFunction1E4E0099FunctionId"
+                        ]
+                    },
+                    "referencetotransformerrootstackLegalAppNestedStackLegalAppNestedStackResource4493E2FDOutputstransformerrootstackLegalAppMutationupdateLegalAppinit0FunctionMutationupdateLegalAppinit0FunctionAppSyncFunction7A0DBBF7FunctionId": {
+                        "Fn::GetAtt": [
+                            "LegalApp",
+                            "Outputs.transformerrootstackLegalAppMutationupdateLegalAppinit0FunctionMutationupdateLegalAppinit0FunctionAppSyncFunction7A0DBBF7FunctionId"
+                        ]
+                    },
+                    "referencetotransformerrootstackLegalAppNestedStackLegalAppNestedStackResource4493E2FDOutputstransformerrootstackLegalAppSubscriptiononCreateLegalAppauth0FunctionSubscriptiononCreateLegalAppauth0FunctionAppSyncFunction9A8EA6DEFunctionId": {
+                        "Fn::GetAtt": [
+                            "LegalApp",
+                            "Outputs.transformerrootstackLegalAppSubscriptiononCreateLegalAppauth0FunctionSubscriptiononCreateLegalAppauth0FunctionAppSyncFunction9A8EA6DEFunctionId"
+                        ]
+                    },
+                    "referencetotransformerrootstackLegalAppNestedStackLegalAppNestedStackResource4493E2FDOutputstransformerrootstackLegalAppSubscriptionOnCreateLegalAppDataResolverFnSubscriptionOnCreateLegalAppDataResolverFnAppSyncFunctionC970649EFunctionId": {
+                        "Fn::GetAtt": [
+                            "LegalApp",
+                            "Outputs.transformerrootstackLegalAppSubscriptionOnCreateLegalAppDataResolverFnSubscriptionOnCreateLegalAppDataResolverFnAppSyncFunctionC970649EFunctionId"
+                        ]
+                    }
+                },
+                "TemplateURL": {
+                    "Fn::Join": [
+                        "",
+                        [
+                            "https://s3.",
+                            {
+                                "Ref": "AWS::Region"
+                            },
+                            ".",
+                            {
+                                "Ref": "AWS::URLSuffix"
+                            },
+                            "/",
+                            {
+                                "Ref": "S3DeploymentBucket"
+                            },
+                            "/",
+                            {
+                                "Ref": "S3DeploymentRootKey"
+                            },
+                            "/stacks/Order.json"
+                        ]
+                    ]
+                }
+            },
+            "DependsOn": [
+                "GraphQLAPITransformerSchema3CB2AE18"
+            ]
+        },
+        "ConnectionStack": {
+            "Type": "AWS::CloudFormation::Stack",
+            "Properties": {
+                "Parameters": {
+                    "referencetotransformerrootstackGraphQLAPI20497F53ApiId": {
+                        "Fn::GetAtt": [
+                            "GraphQLAPI",
+                            "ApiId"
+                        ]
+                    },
+                    "referencetotransformerrootstackGraphQLAPINONEDS2BA9D1C8Name": {
+                        "Fn::GetAtt": [
+                            "GraphQLAPINONEDS95A13CF0",
+                            "Name"
+                        ]
+                    },
+                    "referencetotransformerrootstackS3DeploymentBucket7592718ARef": {
+                        "Ref": "S3DeploymentBucket"
+                    },
+                    "referencetotransformerrootstackS3DeploymentRootKeyA71EA735Ref": {
+                        "Ref": "S3DeploymentRootKey"
+                    },
+                    "referencetotransformerrootstackUserNestedStackUserNestedStackResource01084C14OutputstransformerrootstackUserUserDataSourceA8C4C398Name": {
+                        "Fn::GetAtt": [
+                            "User",
+                            "Outputs.transformerrootstackUserUserDataSourceA8C4C398Name"
+                        ]
+                    },
+                    "referencetotransformerrootstackUserNestedStackUserNestedStackResource01084C14OutputstransformerrootstackUserUserTableA7A02430Ref": {
+                        "Fn::GetAtt": [
+                            "User",
+                            "Outputs.transformerrootstackUserUserTableA7A02430Ref"
+                        ]
+                    },
+                    "referencetotransformerrootstackLegalDocRecordNestedStackLegalDocRecordNestedStackResourceB47F3698OutputstransformerrootstackLegalDocRecordLegalDocRecordDataSourceF7CBD110Name": {
+                        "Fn::GetAtt": [
+                            "LegalDocRecord",
+                            "Outputs.transformerrootstackLegalDocRecordLegalDocRecordDataSourceF7CBD110Name"
+                        ]
+                    },
+                    "referencetotransformerrootstackLegalDocRecordNestedStackLegalDocRecordNestedStackResourceB47F3698OutputstransformerrootstackLegalDocRecordLegalDocRecordTable715DEAC0Ref": {
+                        "Fn::GetAtt": [
+                            "LegalDocRecord",
+                            "Outputs.transformerrootstackLegalDocRecordLegalDocRecordTable715DEAC0Ref"
+                        ]
+                    },
+                    "referencetotransformerrootstackLegalDocNestedStackLegalDocNestedStackResource237B7837OutputstransformerrootstackLegalDocLegalDocDataSource9C44D237Name": {
+                        "Fn::GetAtt": [
+                            "LegalDoc",
+                            "Outputs.transformerrootstackLegalDocLegalDocDataSource9C44D237Name"
+                        ]
+                    },
+                    "referencetotransformerrootstackLegalDocNestedStackLegalDocNestedStackResource237B7837OutputstransformerrootstackLegalDocLegalDocTable62059789Ref": {
+                        "Fn::GetAtt": [
+                            "LegalDoc",
+                            "Outputs.transformerrootstackLegalDocLegalDocTable62059789Ref"
+                        ]
+                    },
+                    "referencetotransformerrootstackLegalAppNestedStackLegalAppNestedStackResource4493E2FDOutputstransformerrootstackLegalAppLegalAppDataSourceBD16DCEEName": {
+                        "Fn::GetAtt": [
+                            "LegalApp",
+                            "Outputs.transformerrootstackLegalAppLegalAppDataSourceBD16DCEEName"
+                        ]
+                    },
+                    "referencetotransformerrootstackLegalAppNestedStackLegalAppNestedStackResource4493E2FDOutputstransformerrootstackLegalAppLegalAppTableA52A2873Ref": {
+                        "Fn::GetAtt": [
+                            "LegalApp",
+                            "Outputs.transformerrootstackLegalAppLegalAppTableA52A2873Ref"
+                        ]
+                    },
+                    "referencetotransformerrootstackLegalDocTypeNestedStackLegalDocTypeNestedStackResource06A98825OutputstransformerrootstackLegalDocTypeLegalDocTypeDataSource540EEC23Name": {
+                        "Fn::GetAtt": [
+                            "LegalDocType",
+                            "Outputs.transformerrootstackLegalDocTypeLegalDocTypeDataSource540EEC23Name"
+                        ]
+                    },
+                    "referencetotransformerrootstackLegalDocTypeNestedStackLegalDocTypeNestedStackResource06A98825OutputstransformerrootstackLegalDocTypeLegalDocTypeTable4E6CFEBERef": {
+                        "Fn::GetAtt": [
+                            "LegalDocType",
+                            "Outputs.transformerrootstackLegalDocTypeLegalDocTypeTable4E6CFEBERef"
+                        ]
+                    }
+                },
+                "TemplateURL": {
+                    "Fn::Join": [
+                        "",
+                        [
+                            "https://s3.",
+                            {
+                                "Ref": "AWS::Region"
+                            },
+                            ".",
+                            {
+                                "Ref": "AWS::URLSuffix"
+                            },
+                            "/",
+                            {
+                                "Ref": "S3DeploymentBucket"
+                            },
+                            "/",
+                            {
+                                "Ref": "S3DeploymentRootKey"
+                            },
+                            "/stacks/ConnectionStack.json"
+                        ]
+                    ]
+                }
+            },
+            "DependsOn": [
+                "GraphQLAPITransformerSchema3CB2AE18",
+                "LegalApp",
+                "LegalDoc",
+                "LegalDocRecord",
+                "LegalDocType",
+                "User"
+            ]
+        },
+        "CustomResourcesjson": {
+            "Type": "AWS::CloudFormation::Stack",
+            "Properties": {
+                "Parameters": {
+                    "AppSyncApiId": {
+                        "Fn::GetAtt": [
+                            "GraphQLAPI",
+                            "ApiId"
+                        ]
+                    },
+                    "AppSyncApiName": {
+                        "Ref": "AppSyncApiName"
+                    },
+                    "env": {
+                        "Ref": "env"
+                    },
+                    "S3DeploymentBucket": {
+                        "Ref": "S3DeploymentBucket"
+                    },
+                    "S3DeploymentRootKey": {
+                        "Ref": "S3DeploymentRootKey"
+                    }
+                },
+                "TemplateURL": {
+                    "Fn::Join": [
+                        "/",
+                        [
+                            "https://s3.amazonaws.com",
+                            {
+                                "Ref": "S3DeploymentBucket"
+                            },
+                            {
+                                "Ref": "S3DeploymentRootKey"
+                            },
+                            "stacks",
+                            "CustomResources.json"
+                        ]
+                    ]
+                }
+            },
+            "DependsOn": [
+                "GraphQLAPI",
+                "GraphQLAPITransformerSchema3CB2AE18",
+                "LegalApp",
+                "User",
+                "LegalDocType",
+                "LegalDoc",
+                "LegalDocRecord",
+                "Order",
+                "ConnectionStack"
+            ]
+        }
+    },
+    "Outputs": {
+        "GraphQLAPIKeyOutput": {
+            "Description": "Your GraphQL API ID.",
+            "Value": {
+                "Fn::GetAtt": [
+                    "GraphQLAPIDefaultApiKey215A6DD7",
+                    "ApiKey"
+                ]
+            },
+            "Export": {
+                "Name": {
+                    "Fn::Join": [
+                        ":",
+                        [
+                            {
+                                "Ref": "AWS::StackName"
+                            },
+                            "GraphQLApiKey"
+                        ]
+                    ]
+                }
+            }
+        },
+        "GraphQLAPIIdOutput": {
+            "Description": "Your GraphQL API ID.",
+            "Value": {
+                "Fn::GetAtt": [
+                    "GraphQLAPI",
+                    "ApiId"
+                ]
+            },
+            "Export": {
+                "Name": {
+                    "Fn::Join": [
+                        ":",
+                        [
+                            {
+                                "Ref": "AWS::StackName"
+                            },
+                            "GraphQLApiId"
+                        ]
+                    ]
+                }
+            }
+        },
+        "GraphQLAPIEndpointOutput": {
+            "Description": "Your GraphQL API endpoint.",
+            "Value": {
+                "Fn::GetAtt": [
+                    "GraphQLAPI",
+                    "GraphQLUrl"
+                ]
+            },
+            "Export": {
+                "Name": {
+                    "Fn::Join": [
+                        ":",
+                        [
+                            {
+                                "Ref": "AWS::StackName"
+                            },
+                            "GraphQLApiEndpoint"
+                        ]
+                    ]
+                }
+            }
+        }
+    }
+}

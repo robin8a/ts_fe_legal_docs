@@ -1,0 +1,630 @@
+type LegalApp {
+  id: ID!
+  name: String!
+  users(filter: ModelUserFilterInput, sortDirection: ModelSortDirection, limit: Int, nextToken: String): ModelUserConnection
+  createdAt: AWSDateTime!
+  updatedAt: AWSDateTime!
+}
+
+type User {
+  id: ID!
+  name: String!
+  legalApp: LegalApp
+  legalDocRecords(filter: ModelLegalDocRecordFilterInput, sortDirection: ModelSortDirection, limit: Int, nextToken: String): ModelLegalDocRecordConnection
+  createdAt: AWSDateTime!
+  updatedAt: AWSDateTime!
+  legalAppUsersId: ID
+}
+
+type LegalDocType {
+  id: ID!
+  name: String!
+  shortName: String
+  legalDocs(filter: ModelLegalDocFilterInput, sortDirection: ModelSortDirection, limit: Int, nextToken: String): ModelLegalDocConnection
+  description: String
+  createdAt: AWSDateTime!
+  updatedAt: AWSDateTime!
+}
+
+type LegalDoc {
+  id: ID!
+  version: String!
+  isActive: Boolean!
+  url: AWSURL!
+  legalDocParentID: LegalDoc
+  legalDocChildren(filter: ModelLegalDocFilterInput, sortDirection: ModelSortDirection, limit: Int, nextToken: String): ModelLegalDocConnection
+  legalDocType: LegalDocType!
+  legalDocRecords(filter: ModelLegalDocRecordFilterInput, sortDirection: ModelSortDirection, limit: Int, nextToken: String): ModelLegalDocRecordConnection
+  createdAt: AWSDateTime!
+  updatedAt: AWSDateTime!
+  legalDocTypeLegalDocsId: ID
+  legalDocLegalDocChildrenId: ID
+}
+
+type LegalDocRecord {
+  id: ID!
+  sign: String!
+  legalSignDate: AWSTimestamp!
+  user: User
+  legalDoc: LegalDoc
+  createdAt: AWSDateTime!
+  updatedAt: AWSDateTime!
+  userLegalDocRecordsId: ID
+  legalDocLegalDocRecordsId: ID
+}
+
+type Order {
+  id: ID!
+  customerID: ID!
+  accountRepresentativeID: ID!
+  productID: ID!
+  status: String!
+  amount: Int!
+  date: String!
+  createdAt: AWSDateTime!
+  updatedAt: AWSDateTime!
+}
+
+input ModelStringInput {
+  ne: String
+  eq: String
+  le: String
+  lt: String
+  ge: String
+  gt: String
+  contains: String
+  notContains: String
+  between: [String]
+  beginsWith: String
+  attributeExists: Boolean
+  attributeType: ModelAttributeTypes
+  size: ModelSizeInput
+}
+
+input ModelIntInput {
+  ne: Int
+  eq: Int
+  le: Int
+  lt: Int
+  ge: Int
+  gt: Int
+  between: [Int]
+  attributeExists: Boolean
+  attributeType: ModelAttributeTypes
+}
+
+input ModelFloatInput {
+  ne: Float
+  eq: Float
+  le: Float
+  lt: Float
+  ge: Float
+  gt: Float
+  between: [Float]
+  attributeExists: Boolean
+  attributeType: ModelAttributeTypes
+}
+
+input ModelBooleanInput {
+  ne: Boolean
+  eq: Boolean
+  attributeExists: Boolean
+  attributeType: ModelAttributeTypes
+}
+
+input ModelIDInput {
+  ne: ID
+  eq: ID
+  le: ID
+  lt: ID
+  ge: ID
+  gt: ID
+  contains: ID
+  notContains: ID
+  between: [ID]
+  beginsWith: ID
+  attributeExists: Boolean
+  attributeType: ModelAttributeTypes
+  size: ModelSizeInput
+}
+
+input ModelSubscriptionStringInput {
+  ne: String
+  eq: String
+  le: String
+  lt: String
+  ge: String
+  gt: String
+  contains: String
+  notContains: String
+  between: [String]
+  beginsWith: String
+  in: [String]
+  notIn: [String]
+}
+
+input ModelSubscriptionIntInput {
+  ne: Int
+  eq: Int
+  le: Int
+  lt: Int
+  ge: Int
+  gt: Int
+  between: [Int]
+  in: [Int]
+  notIn: [Int]
+}
+
+input ModelSubscriptionFloatInput {
+  ne: Float
+  eq: Float
+  le: Float
+  lt: Float
+  ge: Float
+  gt: Float
+  between: [Float]
+  in: [Float]
+  notIn: [Float]
+}
+
+input ModelSubscriptionBooleanInput {
+  ne: Boolean
+  eq: Boolean
+}
+
+input ModelSubscriptionIDInput {
+  ne: ID
+  eq: ID
+  le: ID
+  lt: ID
+  ge: ID
+  gt: ID
+  contains: ID
+  notContains: ID
+  between: [ID]
+  beginsWith: ID
+  in: [ID]
+  notIn: [ID]
+}
+
+enum ModelAttributeTypes {
+  binary
+  binarySet
+  bool
+  list
+  map
+  number
+  numberSet
+  string
+  stringSet
+  _null
+}
+
+input ModelSizeInput {
+  ne: Int
+  eq: Int
+  le: Int
+  lt: Int
+  ge: Int
+  gt: Int
+  between: [Int]
+}
+
+enum ModelSortDirection {
+  ASC
+  DESC
+}
+
+type ModelLegalAppConnection {
+  items: [LegalApp]!
+  nextToken: String
+}
+
+input ModelLegalAppFilterInput {
+  id: ModelIDInput
+  name: ModelStringInput
+  createdAt: ModelStringInput
+  updatedAt: ModelStringInput
+  and: [ModelLegalAppFilterInput]
+  or: [ModelLegalAppFilterInput]
+  not: ModelLegalAppFilterInput
+}
+
+type Query {
+  getLegalApp(id: ID!): LegalApp
+  listLegalApps(filter: ModelLegalAppFilterInput, limit: Int, nextToken: String): ModelLegalAppConnection
+  getUser(id: ID!): User
+  listUsers(filter: ModelUserFilterInput, limit: Int, nextToken: String): ModelUserConnection
+  getLegalDocType(id: ID!): LegalDocType
+  listLegalDocTypes(filter: ModelLegalDocTypeFilterInput, limit: Int, nextToken: String): ModelLegalDocTypeConnection
+  getLegalDoc(id: ID!): LegalDoc
+  listLegalDocs(filter: ModelLegalDocFilterInput, limit: Int, nextToken: String): ModelLegalDocConnection
+  getLegalDocRecord(id: ID!): LegalDocRecord
+  listLegalDocRecords(filter: ModelLegalDocRecordFilterInput, limit: Int, nextToken: String): ModelLegalDocRecordConnection
+  getOrder(id: ID!): Order
+  listOrders(filter: ModelOrderFilterInput, limit: Int, nextToken: String): ModelOrderConnection
+}
+
+input ModelLegalAppConditionInput {
+  name: ModelStringInput
+  and: [ModelLegalAppConditionInput]
+  or: [ModelLegalAppConditionInput]
+  not: ModelLegalAppConditionInput
+  createdAt: ModelStringInput
+  updatedAt: ModelStringInput
+}
+
+input CreateLegalAppInput {
+  id: ID
+  name: String!
+}
+
+input UpdateLegalAppInput {
+  id: ID!
+  name: String
+}
+
+input DeleteLegalAppInput {
+  id: ID!
+}
+
+type Mutation {
+  createLegalApp(input: CreateLegalAppInput!, condition: ModelLegalAppConditionInput): LegalApp
+  updateLegalApp(input: UpdateLegalAppInput!, condition: ModelLegalAppConditionInput): LegalApp
+  deleteLegalApp(input: DeleteLegalAppInput!, condition: ModelLegalAppConditionInput): LegalApp
+  createUser(input: CreateUserInput!, condition: ModelUserConditionInput): User
+  updateUser(input: UpdateUserInput!, condition: ModelUserConditionInput): User
+  deleteUser(input: DeleteUserInput!, condition: ModelUserConditionInput): User
+  createLegalDocType(input: CreateLegalDocTypeInput!, condition: ModelLegalDocTypeConditionInput): LegalDocType
+  updateLegalDocType(input: UpdateLegalDocTypeInput!, condition: ModelLegalDocTypeConditionInput): LegalDocType
+  deleteLegalDocType(input: DeleteLegalDocTypeInput!, condition: ModelLegalDocTypeConditionInput): LegalDocType
+  createLegalDoc(input: CreateLegalDocInput!, condition: ModelLegalDocConditionInput): LegalDoc
+  updateLegalDoc(input: UpdateLegalDocInput!, condition: ModelLegalDocConditionInput): LegalDoc
+  deleteLegalDoc(input: DeleteLegalDocInput!, condition: ModelLegalDocConditionInput): LegalDoc
+  createLegalDocRecord(input: CreateLegalDocRecordInput!, condition: ModelLegalDocRecordConditionInput): LegalDocRecord
+  updateLegalDocRecord(input: UpdateLegalDocRecordInput!, condition: ModelLegalDocRecordConditionInput): LegalDocRecord
+  deleteLegalDocRecord(input: DeleteLegalDocRecordInput!, condition: ModelLegalDocRecordConditionInput): LegalDocRecord
+  createOrder(input: CreateOrderInput!, condition: ModelOrderConditionInput): Order
+  updateOrder(input: UpdateOrderInput!, condition: ModelOrderConditionInput): Order
+  deleteOrder(input: DeleteOrderInput!, condition: ModelOrderConditionInput): Order
+}
+
+input ModelSubscriptionLegalAppFilterInput {
+  id: ModelSubscriptionIDInput
+  name: ModelSubscriptionStringInput
+  createdAt: ModelSubscriptionStringInput
+  updatedAt: ModelSubscriptionStringInput
+  and: [ModelSubscriptionLegalAppFilterInput]
+  or: [ModelSubscriptionLegalAppFilterInput]
+  legalAppUsersId: ModelSubscriptionIDInput
+}
+
+type Subscription {
+  onCreateLegalApp(filter: ModelSubscriptionLegalAppFilterInput): LegalApp @aws_subscribe(mutations: ["createLegalApp"])
+  onUpdateLegalApp(filter: ModelSubscriptionLegalAppFilterInput): LegalApp @aws_subscribe(mutations: ["updateLegalApp"])
+  onDeleteLegalApp(filter: ModelSubscriptionLegalAppFilterInput): LegalApp @aws_subscribe(mutations: ["deleteLegalApp"])
+  onCreateUser(filter: ModelSubscriptionUserFilterInput): User @aws_subscribe(mutations: ["createUser"])
+  onUpdateUser(filter: ModelSubscriptionUserFilterInput): User @aws_subscribe(mutations: ["updateUser"])
+  onDeleteUser(filter: ModelSubscriptionUserFilterInput): User @aws_subscribe(mutations: ["deleteUser"])
+  onCreateLegalDocType(filter: ModelSubscriptionLegalDocTypeFilterInput): LegalDocType @aws_subscribe(mutations: ["createLegalDocType"])
+  onUpdateLegalDocType(filter: ModelSubscriptionLegalDocTypeFilterInput): LegalDocType @aws_subscribe(mutations: ["updateLegalDocType"])
+  onDeleteLegalDocType(filter: ModelSubscriptionLegalDocTypeFilterInput): LegalDocType @aws_subscribe(mutations: ["deleteLegalDocType"])
+  onCreateLegalDoc(filter: ModelSubscriptionLegalDocFilterInput): LegalDoc @aws_subscribe(mutations: ["createLegalDoc"])
+  onUpdateLegalDoc(filter: ModelSubscriptionLegalDocFilterInput): LegalDoc @aws_subscribe(mutations: ["updateLegalDoc"])
+  onDeleteLegalDoc(filter: ModelSubscriptionLegalDocFilterInput): LegalDoc @aws_subscribe(mutations: ["deleteLegalDoc"])
+  onCreateLegalDocRecord(filter: ModelSubscriptionLegalDocRecordFilterInput): LegalDocRecord @aws_subscribe(mutations: ["createLegalDocRecord"])
+  onUpdateLegalDocRecord(filter: ModelSubscriptionLegalDocRecordFilterInput): LegalDocRecord @aws_subscribe(mutations: ["updateLegalDocRecord"])
+  onDeleteLegalDocRecord(filter: ModelSubscriptionLegalDocRecordFilterInput): LegalDocRecord @aws_subscribe(mutations: ["deleteLegalDocRecord"])
+  onCreateOrder(filter: ModelSubscriptionOrderFilterInput): Order @aws_subscribe(mutations: ["createOrder"])
+  onUpdateOrder(filter: ModelSubscriptionOrderFilterInput): Order @aws_subscribe(mutations: ["updateOrder"])
+  onDeleteOrder(filter: ModelSubscriptionOrderFilterInput): Order @aws_subscribe(mutations: ["deleteOrder"])
+}
+
+type ModelUserConnection {
+  items: [User]!
+  nextToken: String
+}
+
+input ModelUserFilterInput {
+  id: ModelIDInput
+  name: ModelStringInput
+  createdAt: ModelStringInput
+  updatedAt: ModelStringInput
+  and: [ModelUserFilterInput]
+  or: [ModelUserFilterInput]
+  not: ModelUserFilterInput
+  legalAppUsersId: ModelIDInput
+}
+
+input ModelUserConditionInput {
+  name: ModelStringInput
+  and: [ModelUserConditionInput]
+  or: [ModelUserConditionInput]
+  not: ModelUserConditionInput
+  createdAt: ModelStringInput
+  updatedAt: ModelStringInput
+  legalAppUsersId: ModelIDInput
+}
+
+input CreateUserInput {
+  id: ID
+  name: String!
+  legalAppUsersId: ID
+}
+
+input UpdateUserInput {
+  id: ID!
+  name: String
+  legalAppUsersId: ID
+}
+
+input DeleteUserInput {
+  id: ID!
+}
+
+input ModelSubscriptionUserFilterInput {
+  id: ModelSubscriptionIDInput
+  name: ModelSubscriptionStringInput
+  createdAt: ModelSubscriptionStringInput
+  updatedAt: ModelSubscriptionStringInput
+  and: [ModelSubscriptionUserFilterInput]
+  or: [ModelSubscriptionUserFilterInput]
+  userLegalDocRecordsId: ModelSubscriptionIDInput
+}
+
+type ModelLegalDocTypeConnection {
+  items: [LegalDocType]!
+  nextToken: String
+}
+
+input ModelLegalDocTypeFilterInput {
+  id: ModelIDInput
+  name: ModelStringInput
+  shortName: ModelStringInput
+  description: ModelStringInput
+  createdAt: ModelStringInput
+  updatedAt: ModelStringInput
+  and: [ModelLegalDocTypeFilterInput]
+  or: [ModelLegalDocTypeFilterInput]
+  not: ModelLegalDocTypeFilterInput
+}
+
+input ModelLegalDocTypeConditionInput {
+  name: ModelStringInput
+  shortName: ModelStringInput
+  description: ModelStringInput
+  and: [ModelLegalDocTypeConditionInput]
+  or: [ModelLegalDocTypeConditionInput]
+  not: ModelLegalDocTypeConditionInput
+  createdAt: ModelStringInput
+  updatedAt: ModelStringInput
+}
+
+input CreateLegalDocTypeInput {
+  id: ID
+  name: String!
+  shortName: String
+  description: String
+}
+
+input UpdateLegalDocTypeInput {
+  id: ID!
+  name: String
+  shortName: String
+  description: String
+}
+
+input DeleteLegalDocTypeInput {
+  id: ID!
+}
+
+input ModelSubscriptionLegalDocTypeFilterInput {
+  id: ModelSubscriptionIDInput
+  name: ModelSubscriptionStringInput
+  shortName: ModelSubscriptionStringInput
+  description: ModelSubscriptionStringInput
+  createdAt: ModelSubscriptionStringInput
+  updatedAt: ModelSubscriptionStringInput
+  and: [ModelSubscriptionLegalDocTypeFilterInput]
+  or: [ModelSubscriptionLegalDocTypeFilterInput]
+  legalDocTypeLegalDocsId: ModelSubscriptionIDInput
+}
+
+type ModelLegalDocConnection {
+  items: [LegalDoc]!
+  nextToken: String
+}
+
+input ModelLegalDocFilterInput {
+  id: ModelIDInput
+  version: ModelStringInput
+  isActive: ModelBooleanInput
+  url: ModelStringInput
+  createdAt: ModelStringInput
+  updatedAt: ModelStringInput
+  and: [ModelLegalDocFilterInput]
+  or: [ModelLegalDocFilterInput]
+  not: ModelLegalDocFilterInput
+  legalDocTypeLegalDocsId: ModelIDInput
+  legalDocLegalDocChildrenId: ModelIDInput
+}
+
+input ModelLegalDocConditionInput {
+  version: ModelStringInput
+  isActive: ModelBooleanInput
+  url: ModelStringInput
+  and: [ModelLegalDocConditionInput]
+  or: [ModelLegalDocConditionInput]
+  not: ModelLegalDocConditionInput
+  createdAt: ModelStringInput
+  updatedAt: ModelStringInput
+  legalDocTypeLegalDocsId: ModelIDInput
+  legalDocLegalDocChildrenId: ModelIDInput
+}
+
+input CreateLegalDocInput {
+  id: ID
+  version: String!
+  isActive: Boolean!
+  url: AWSURL!
+  legalDocTypeLegalDocsId: ID
+  legalDocLegalDocChildrenId: ID
+}
+
+input UpdateLegalDocInput {
+  id: ID!
+  version: String
+  isActive: Boolean
+  url: AWSURL
+  legalDocTypeLegalDocsId: ID
+  legalDocLegalDocChildrenId: ID
+}
+
+input DeleteLegalDocInput {
+  id: ID!
+}
+
+input ModelSubscriptionLegalDocFilterInput {
+  id: ModelSubscriptionIDInput
+  version: ModelSubscriptionStringInput
+  isActive: ModelSubscriptionBooleanInput
+  url: ModelSubscriptionStringInput
+  createdAt: ModelSubscriptionStringInput
+  updatedAt: ModelSubscriptionStringInput
+  and: [ModelSubscriptionLegalDocFilterInput]
+  or: [ModelSubscriptionLegalDocFilterInput]
+  legalDocLegalDocChildrenId: ModelSubscriptionIDInput
+  legalDocLegalDocRecordsId: ModelSubscriptionIDInput
+}
+
+type ModelLegalDocRecordConnection {
+  items: [LegalDocRecord]!
+  nextToken: String
+}
+
+input ModelLegalDocRecordFilterInput {
+  id: ModelIDInput
+  sign: ModelStringInput
+  legalSignDate: ModelIntInput
+  createdAt: ModelStringInput
+  updatedAt: ModelStringInput
+  and: [ModelLegalDocRecordFilterInput]
+  or: [ModelLegalDocRecordFilterInput]
+  not: ModelLegalDocRecordFilterInput
+  userLegalDocRecordsId: ModelIDInput
+  legalDocLegalDocRecordsId: ModelIDInput
+}
+
+input ModelLegalDocRecordConditionInput {
+  sign: ModelStringInput
+  legalSignDate: ModelIntInput
+  and: [ModelLegalDocRecordConditionInput]
+  or: [ModelLegalDocRecordConditionInput]
+  not: ModelLegalDocRecordConditionInput
+  createdAt: ModelStringInput
+  updatedAt: ModelStringInput
+  userLegalDocRecordsId: ModelIDInput
+  legalDocLegalDocRecordsId: ModelIDInput
+}
+
+input CreateLegalDocRecordInput {
+  id: ID
+  sign: String!
+  legalSignDate: AWSTimestamp!
+  userLegalDocRecordsId: ID
+  legalDocLegalDocRecordsId: ID
+}
+
+input UpdateLegalDocRecordInput {
+  id: ID!
+  sign: String
+  legalSignDate: AWSTimestamp
+  userLegalDocRecordsId: ID
+  legalDocLegalDocRecordsId: ID
+}
+
+input DeleteLegalDocRecordInput {
+  id: ID!
+}
+
+input ModelSubscriptionLegalDocRecordFilterInput {
+  id: ModelSubscriptionIDInput
+  sign: ModelSubscriptionStringInput
+  legalSignDate: ModelSubscriptionIntInput
+  createdAt: ModelSubscriptionStringInput
+  updatedAt: ModelSubscriptionStringInput
+  and: [ModelSubscriptionLegalDocRecordFilterInput]
+  or: [ModelSubscriptionLegalDocRecordFilterInput]
+}
+
+type ModelOrderConnection {
+  items: [Order]!
+  nextToken: String
+}
+
+input ModelOrderFilterInput {
+  id: ModelIDInput
+  customerID: ModelIDInput
+  accountRepresentativeID: ModelIDInput
+  productID: ModelIDInput
+  status: ModelStringInput
+  amount: ModelIntInput
+  date: ModelStringInput
+  createdAt: ModelStringInput
+  updatedAt: ModelStringInput
+  and: [ModelOrderFilterInput]
+  or: [ModelOrderFilterInput]
+  not: ModelOrderFilterInput
+}
+
+input ModelOrderConditionInput {
+  customerID: ModelIDInput
+  accountRepresentativeID: ModelIDInput
+  productID: ModelIDInput
+  status: ModelStringInput
+  amount: ModelIntInput
+  date: ModelStringInput
+  and: [ModelOrderConditionInput]
+  or: [ModelOrderConditionInput]
+  not: ModelOrderConditionInput
+  createdAt: ModelStringInput
+  updatedAt: ModelStringInput
+}
+
+input CreateOrderInput {
+  id: ID
+  customerID: ID!
+  accountRepresentativeID: ID!
+  productID: ID!
+  status: String!
+  amount: Int!
+  date: String!
+}
+
+input UpdateOrderInput {
+  id: ID!
+  customerID: ID
+  accountRepresentativeID: ID
+  productID: ID
+  status: String
+  amount: Int
+  date: String
+}
+
+input DeleteOrderInput {
+  id: ID!
+}
+
+input ModelSubscriptionOrderFilterInput {
+  id: ModelSubscriptionIDInput
+  customerID: ModelSubscriptionIDInput
+  accountRepresentativeID: ModelSubscriptionIDInput
+  productID: ModelSubscriptionIDInput
+  status: ModelSubscriptionStringInput
+  amount: ModelSubscriptionIntInput
+  date: ModelSubscriptionStringInput
+  createdAt: ModelSubscriptionStringInput
+  updatedAt: ModelSubscriptionStringInput
+  and: [ModelSubscriptionOrderFilterInput]
+  or: [ModelSubscriptionOrderFilterInput]
+}
