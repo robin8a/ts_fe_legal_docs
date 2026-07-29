@@ -1,0 +1,176 @@
+/* Login — Terrasacha-inspired greens + split banner layout */
+.login-page {
+  --login-forest: #6e6c35;
+  --login-cloud: #44482c;
+  --login-meadow: #849b50;
+  --login-light: #b1c181;
+  --login-earth: #e8d79a;
+  --login-ink: #1c1f14;
+  --login-muted: #5c6148;
+  --login-surface: #f7f6ef;
+  --login-card: #ffffff;
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: 1fr;
+  font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  background: var(--login-surface);
+  color: var(--login-ink);
+}
+
+@media (min-width: 900px) {
+  .login-page {
+    grid-template-columns: minmax(0, 1.15fr) minmax(22rem, 26rem);
+  }
+}
+
+.login-banner {
+  position: relative;
+  min-height: 14rem;
+  display: flex;
+  align-items: flex-end;
+  padding: 2rem 1.5rem;
+  overflow: hidden;
+  background:
+    radial-gradient(ellipse 80% 70% at 15% 20%, color-mix(in srgb, var(--login-earth) 55%, transparent), transparent 55%),
+    radial-gradient(ellipse 60% 50% at 90% 80%, color-mix(in srgb, var(--login-meadow) 40%, transparent), transparent 50%),
+    linear-gradient(155deg, var(--login-cloud) 0%, var(--login-forest) 48%, #2f321f 100%);
+}
+
+@media (min-width: 900px) {
+  .login-banner {
+    min-height: 100vh;
+    align-items: center;
+    padding: 3rem 3.5rem;
+  }
+}
+
+.login-banner-overlay {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(180deg, transparent 30%, rgba(15, 18, 10, 0.45) 100%),
+    repeating-linear-gradient(
+      -18deg,
+      transparent,
+      transparent 12px,
+      rgba(255, 255, 255, 0.025) 12px,
+      rgba(255, 255, 255, 0.025) 13px
+    );
+  pointer-events: none;
+}
+
+.login-banner-content {
+  position: relative;
+  z-index: 1;
+  max-width: 28rem;
+  color: #f8f7f0;
+}
+
+.login-banner-mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 3rem;
+  height: 3rem;
+  border-radius: 14px;
+  margin-bottom: 1.25rem;
+  background: linear-gradient(135deg, var(--login-meadow), var(--login-light));
+  color: var(--login-cloud);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+}
+
+.login-banner-eyebrow {
+  margin: 0 0 0.5rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--login-earth);
+}
+
+.login-banner-title {
+  margin: 0 0 0.75rem;
+  font-size: clamp(1.75rem, 3vw, 2.35rem);
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1.15;
+}
+
+.login-banner-copy {
+  margin: 0;
+  font-size: 0.95rem;
+  line-height: 1.55;
+  color: rgba(248, 247, 240, 0.82);
+  max-width: 24rem;
+}
+
+.login-panel {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 1.25rem 2.5rem;
+  background: var(--login-surface);
+}
+
+.login-panel-inner {
+  width: 100%;
+  max-width: 22rem;
+  background: var(--login-card);
+  border: 1px solid color-mix(in srgb, var(--login-forest) 12%, #e8e6dc);
+  border-radius: 18px;
+  padding: 1.75rem 1.5rem;
+  box-shadow: 0 12px 40px -18px rgba(68, 72, 44, 0.35);
+}
+
+.login-panel-mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.4rem;
+  height: 2.4rem;
+  border-radius: 12px;
+  background: linear-gradient(135deg, var(--login-forest), var(--login-meadow));
+  color: #fff;
+  flex-shrink: 0;
+}
+
+.login-panel-heading {
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  margin: 0 0 0.35rem;
+}
+
+.login-panel-desc {
+  font-size: 0.875rem;
+  margin-bottom: 1.25rem;
+}
+
+.login-page .form-control {
+  border-radius: 10px;
+  border-color: color-mix(in srgb, var(--login-forest) 18%, #d6d3c8);
+  padding: 0.55rem 0.75rem;
+  font-size: 0.9rem;
+}
+
+.login-page .form-control:focus {
+  border-color: var(--login-meadow);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--login-light) 55%, transparent);
+}
+
+.login-submit {
+  border: none !important;
+  font-weight: 600;
+  border-radius: 10px;
+  padding: 0.65rem 1rem;
+  background: linear-gradient(135deg, var(--login-forest) 0%, var(--login-cloud) 100%) !important;
+  box-shadow: 0 6px 18px color-mix(in srgb, var(--login-forest) 35%, transparent);
+}
+
+.login-submit:hover:not(:disabled) {
+  filter: brightness(1.06);
+}
+
+.login-submit:disabled {
+  opacity: 0.75;
+}
