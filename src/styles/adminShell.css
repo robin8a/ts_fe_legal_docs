@@ -1301,16 +1301,12 @@
   vertical-align: middle;
 }
 
-.admin-logout-btn {
-  color: var(--admin-sidebar-muted) !important;
-  flex-shrink: 0;
-}
-
-.admin-logout-btn:hover {
-  color: #fff !important;
-  background: rgba(255, 255, 255, 0.12) !important;
-}
-
-.admin-offcanvas-nav .admin-logout-btn:hover {
-  color: #fff !important;
+.admin-sidebar-version {
+  margin-top: 0.5rem;
+  padding: 0.25rem 0.5rem 0;
+  font-size: 0.75rem;
+  color: var(--admin-sidebar-muted);
+  text-align: center;
+  letter-spacing: 0.04em;
+  opacity: 0.8;
 }

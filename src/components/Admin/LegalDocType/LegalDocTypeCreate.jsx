@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Form, Button, Alert, Spinner } from 'react-bootstrap';
 import { Link, useNavigate } from 'react-router-dom';
 import { graphqlMutation } from '../../../utils/graphqlClient';
-import { createLegalDocType } from '../../../graphql/mutations';
+import { createLegalDocType } from '../../../graphql_custom';
 import { IconArrowLeft } from '../icons/AdminIcons';
 
 const LegalDocTypeCreate = () => {

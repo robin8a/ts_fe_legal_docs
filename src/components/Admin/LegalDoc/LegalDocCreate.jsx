@@ -1,9 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { Form, Button, Alert, Row, Col, InputGroup, Spinner } from 'react-bootstrap';
 import { Link, useNavigate } from 'react-router-dom';
-import { graphqlQuery, graphqlMutation } from '../../../utils/graphqlClient';
-import { listLegalDocTypes, listLegalDocs } from '../../../graphql/queries';
-import { createLegalDoc } from '../../../graphql/mutations';
+import { graphqlQuery, graphqlMutation, settledListItems } from '../../../utils/graphqlClient';
+import {
+  listLegalDocTypes,
+  listLegalDocs,
+  listLegalApps,
+  listUsers,
+  createLegalDoc,
+} from '../../../graphql_custom';
 import { IconArrowLeft, IconChevronDown, IconSearch, IconTrash } from '../icons/AdminIcons';
 
 const buildUrlFromSuffix = (suffix) => {
@@ -23,12 +28,17 @@ const LegalDocCreate = () => {
   const [formData, setFormData] = useState({
     version: '',
     isActive: true,
+    is_latest: true,
     url: '',
     legalDocTypeLegalDocsId: '',
     legalDocLegalDocChildrenId: '',
+    legalAppLegalDocsId: '',
+    userLegalDocsId: '',
   });
   const [docTypes, setDocTypes] = useState([]);
   const [parentDocs, setParentDocs] = useState([]);
+  const [legalApps, setLegalApps] = useState([]);
+  const [users, setUsers] = useState([]);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [loadingRefs, setLoadingRefs] = useState(true);
@@ -38,18 +48,37 @@ const LegalDocCreate = () => {
   }, []);
 
   const loadReferences = async () => {
-    try {
-      const [docTypesResult, docsResult] = await Promise.all([
-        graphqlQuery(listLegalDocTypes),
-        graphqlQuery(listLegalDocs),
-      ]);
-      setDocTypes(docTypesResult.data.listLegalDocTypes.items);
-      setParentDocs(docsResult.data.listLegalDocs.items);
-      setLoadingRefs(false);
-    } catch (err) {
-      console.error('Error loading references:', err);
-      setLoadingRefs(false);
+    const [docTypesResult, docsResult, appsResult, usersResult] = await Promise.allSettled([
+      graphqlQuery(listLegalDocTypes),
+      graphqlQuery(listLegalDocs),
+      graphqlQuery(listLegalApps),
+      graphqlQuery(listUsers),
+    ]);
+
+    const docTypes = settledListItems(docTypesResult, 'listLegalDocTypes');
+    const parentDocs = settledListItems(docsResult, 'listLegalDocs');
+    const apps = settledListItems(appsResult, 'listLegalApps');
+    const usersList = settledListItems(usersResult, 'listUsers');
+
+    setDocTypes(docTypes);
+    setParentDocs(parentDocs);
+    setLegalApps(apps);
+    setUsers(usersList);
+
+    if (docTypesResult.status === 'rejected') {
+      console.error('Error loading legal doc types:', docTypesResult.reason);
     }
+    if (docsResult.status === 'rejected') {
+      console.error('Error loading legal docs (parents):', docsResult.reason);
+    }
+    if (appsResult.status === 'rejected') {
+      console.error('Error loading legal apps:', appsResult.reason);
+    }
+    if (usersResult.status === 'rejected') {
+      console.error('Error loading users:', usersResult.reason);
+    }
+
+    setLoadingRefs(false);
   };
 
   const handleChange = (e) => {
@@ -79,6 +108,7 @@ const LegalDocCreate = () => {
       const input = {
         version: formData.version,
         isActive: formData.isActive,
+        is_latest: formData.is_latest,
         url: formData.url,
       };
       if (formData.legalDocTypeLegalDocsId) {
@@ -86,6 +116,12 @@ const LegalDocCreate = () => {
       }
       if (formData.legalDocLegalDocChildrenId) {
         input.legalDocLegalDocChildrenId = formData.legalDocLegalDocChildrenId;
+      }
+      if (formData.legalAppLegalDocsId) {
+        input.legalAppLegalDocsId = formData.legalAppLegalDocsId;
+      }
+      if (formData.userLegalDocsId) {
+        input.userLegalDocsId = formData.userLegalDocsId;
       }
 
       await graphqlMutation(createLegalDoc, { input });
@@ -166,7 +202,75 @@ const LegalDocCreate = () => {
                       ))}
                     </Form.Select>
                     <span
-                      className="position-absolute top-50 end-0 translate-middle-y pe-3 text-secondary pointer-events-none"
+                      className="position-absolute top-50 end-0 translate-middle-y pe-3 text-secondary pe-none"
+                      aria-hidden="true"
+                    >
+                      <IconChevronDown />
+                    </span>
+                  </div>
+                </Form.Group>
+              </Col>
+            </Row>
+
+            <Row className="g-4 mb-4">
+              <Col md={6}>
+                <Form.Group controlId="legal-doc-app">
+                  <div className="admin-form-label-row mb-2">
+                    <Form.Label className="small fw-medium text-body-secondary mb-0">Legal App</Form.Label>
+                    <span className="text-muted small fw-normal">Owner workspace</span>
+                  </div>
+                  <div className="position-relative">
+                    <Form.Select
+                      name="legalAppLegalDocsId"
+                      value={formData.legalAppLegalDocsId}
+                      onChange={handleChange}
+                      className="shadow-sm pe-5"
+                      style={{ appearance: 'none', WebkitAppearance: 'none' }}
+                      aria-label="Legal App owning this document"
+                    >
+                      <option value="">Unassigned</option>
+                      {legalApps.map((app) => (
+                        <option key={app.id} value={app.id}>
+                          {app.name}
+                        </option>
+                      ))}
+                    </Form.Select>
+                    <span
+                      className="position-absolute top-50 end-0 translate-middle-y pe-3 text-secondary pe-none"
+                      aria-hidden="true"
+                    >
+                      <IconChevronDown />
+                    </span>
+                  </div>
+                  <Form.Text className="text-muted">
+                    Restricts which user–app pairs can sign this document.
+                  </Form.Text>
+                </Form.Group>
+              </Col>
+              <Col md={6}>
+                <Form.Group controlId="legal-doc-author">
+                  <div className="admin-form-label-row mb-2">
+                    <Form.Label className="small fw-medium text-body-secondary mb-0">Author</Form.Label>
+                    <span className="text-muted small fw-normal">Optional</span>
+                  </div>
+                  <div className="position-relative">
+                    <Form.Select
+                      name="userLegalDocsId"
+                      value={formData.userLegalDocsId}
+                      onChange={handleChange}
+                      className="shadow-sm pe-5"
+                      style={{ appearance: 'none', WebkitAppearance: 'none' }}
+                      aria-label="Document author"
+                    >
+                      <option value="">No author</option>
+                      {users.map((u) => (
+                        <option key={u.id} value={u.id}>
+                          {u.name}
+                        </option>
+                      ))}
+                    </Form.Select>
+                    <span
+                      className="position-absolute top-50 end-0 translate-middle-y pe-3 text-secondary pe-none"
                       aria-hidden="true"
                     >
                       <IconChevronDown />
@@ -213,7 +317,7 @@ const LegalDocCreate = () => {
                   ))}
                 </Form.Select>
                 <span
-                  className="position-absolute top-50 end-0 translate-middle-y pe-3 text-secondary pointer-events-none"
+                  className="position-absolute top-50 end-0 translate-middle-y pe-3 text-secondary pe-none"
                   aria-hidden="true"
                 >
                   <IconSearch />
@@ -236,6 +340,24 @@ const LegalDocCreate = () => {
                     <span className="small fw-medium text-body-secondary d-block mb-1">Set as Active Document</span>
                     <span className="text-muted small d-block">
                       Marking this as active will supersede any previous versions of this type.
+                    </span>
+                  </span>
+                }
+              />
+            </div>
+
+            <div className="admin-active-row mt-3">
+              <Form.Check
+                type="checkbox"
+                name="is_latest"
+                id="legal-doc-latest"
+                checked={formData.is_latest}
+                onChange={handleChange}
+                label={
+                  <span>
+                    <span className="small fw-medium text-body-secondary d-block mb-1">Mark as latest version</span>
+                    <span className="text-muted small d-block">
+                      Only one version per document type should typically be the latest.
                     </span>
                   </span>
                 }

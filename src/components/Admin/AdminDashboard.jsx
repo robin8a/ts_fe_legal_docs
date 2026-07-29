@@ -8,7 +8,6 @@ import {
   IconFileType,
   IconFileText,
   IconCheckSquare,
-  IconShoppingCart,
   IconPlus,
   IconSearch,
   IconMenu,
@@ -37,9 +36,9 @@ import LegalDocRecordList from './LegalDocRecord/LegalDocRecordList';
 import LegalDocRecordCreate from './LegalDocRecord/LegalDocRecordCreate';
 import LegalDocRecordEdit from './LegalDocRecord/LegalDocRecordEdit';
 
-import OrderList from './Order/OrderList';
-import OrderCreate from './Order/OrderCreate';
-import OrderEdit from './Order/OrderEdit';
+import packageJson from '../../../package.json';
+
+const APP_VERSION = packageJson.version;
 
 const SECTION_META = {
   'legal-apps': {
@@ -72,12 +71,6 @@ const SECTION_META = {
     createPath: '/admin/legal-doc-records/create',
     createLabel: 'Create Record',
   },
-  orders: {
-    title: 'Orders',
-    subtitle: 'Commerce and billing activity in one place.',
-    createPath: '/admin/orders/create',
-    createLabel: 'Create Order',
-  },
 };
 
 const navItems = [
@@ -106,7 +99,6 @@ const navItems = [
     match: (p) => p.startsWith('/admin/legal-doc-records'),
     Icon: IconCheckSquare,
   },
-  { to: '/admin/orders', label: 'Orders', match: (p) => p.startsWith('/admin/orders'), Icon: IconShoppingCart },
 ];
 
 const resolveSection = (pathname) => {
@@ -121,10 +113,7 @@ const shouldHideCreateCta = (pathname) => {
   return /\/create$/.test(normalized) || /\/edit$/.test(normalized);
 };
 
-const isOrdersListOnly = (pathname) => {
-  const normalized = pathname.replace(/\/$/, '') || '/admin';
-  return normalized === '/admin/orders';
-};
+const DISPLAY_VERSION = APP_VERSION.split('.').slice(0, 2).join('.');
 
 const AdminDashboard = () => {
   const { pathname } = useLocation();
@@ -135,33 +124,6 @@ const AdminDashboard = () => {
   const section = resolveSection(pathname);
   const meta = SECTION_META[section] || SECTION_META['legal-apps'];
   const hideCta = shouldHideCreateCta(pathname);
-  const ordersDenseList = isOrdersListOnly(pathname);
-
-  const handleLogout = () => {
-    logout();
-    navigate('/login', { replace: true });
-  };
-
-  const renderUserFooter = () => (
-    <div className="admin-sidebar-footer">
-      <div className="admin-sidebar-footer-avatar" aria-hidden="true">
-        {(user?.displayName || 'AD').slice(0, 2).toUpperCase()}
-      </div>
-      <div className="min-w-0 flex-grow-1">
-        <div className="small fw-medium text-truncate">{user?.displayName || 'Administrador'}</div>
-        <div className="text-muted small text-truncate">{user?.username || 'administrador'}</div>
-      </div>
-      <button
-        type="button"
-        className="admin-icon-btn admin-logout-btn"
-        onClick={handleLogout}
-        aria-label="Cerrar sesión"
-        title="Cerrar sesión"
-      >
-        <IconLogOut />
-      </button>
-    </div>
-  );
 
   const renderNavLinks = () =>
     navItems.map(({ to, label, match, Icon }) => (
@@ -188,7 +150,18 @@ const AdminDashboard = () => {
           <span className="admin-sidebar-brand-title">Legal Docs Admin</span>
         </Link>
         <nav className="admin-sidebar-nav">{renderNavLinks()}</nav>
-        {renderUserFooter()}
+        <div className="admin-sidebar-footer">
+          <div className="admin-sidebar-footer-avatar" aria-hidden="true">
+            AD
+          </div>
+          <div className="min-w-0">
+            <div className="small fw-medium text-truncate">Admin User</div>
+            <div className="text-muted small">admin@legaldocs.io</div>
+          </div>
+        </div>
+        <div className="admin-sidebar-version" aria-label={`App version ${DISPLAY_VERSION}`}>
+          v{DISPLAY_VERSION}
+        </div>
       </aside>
 
       <Offcanvas
@@ -209,18 +182,23 @@ const AdminDashboard = () => {
           <nav className="admin-sidebar-nav flex-grow-1" aria-label="Principal móvil">
             {renderNavLinks()}
           </nav>
-          <div className="border-0 pt-3 mt-2">{renderUserFooter()}</div>
+          <div className="admin-sidebar-footer border-0 pt-3 mt-2">
+            <div className="admin-sidebar-footer-avatar" aria-hidden="true">
+              AD
+            </div>
+            <div className="min-w-0">
+              <div className="small fw-medium text-truncate">Admin User</div>
+              <div className="text-muted small">admin@legaldocs.io</div>
+            </div>
+          </div>
+          <div className="admin-sidebar-version" aria-label={`App version ${DISPLAY_VERSION}`}>
+            v{DISPLAY_VERSION}
+          </div>
         </Offcanvas.Body>
       </Offcanvas>
 
       <div className="admin-content">
-        <header
-          className={
-            ordersDenseList
-              ? 'admin-content-header d-flex d-md-none flex-shrink-0'
-              : 'admin-content-header'
-          }
-        >
+        <header className="admin-content-header">
           <div className="admin-content-header-lead min-w-0">
             <div className="d-flex align-items-start gap-3 min-w-0">
               <Button
@@ -234,9 +212,7 @@ const AdminDashboard = () => {
               </Button>
               <div className="min-w-0">
                 <h1 className="admin-content-title text-truncate">{meta.title}</h1>
-                {!ordersDenseList ? (
-                  <p className="admin-content-subtitle text-truncate mb-0">{meta.subtitle}</p>
-                ) : null}
+                <p className="admin-content-subtitle text-truncate mb-0">{meta.subtitle}</p>
               </div>
             </div>
           </div>
@@ -277,13 +253,7 @@ const AdminDashboard = () => {
           </div>
         </header>
 
-        <div
-          className={
-            ordersDenseList
-              ? 'admin-content-main admin-content-main--orders-dense'
-              : 'admin-content-main'
-          }
-        >
+        <div className="admin-content-main">
           <Routes>
             <Route path="legal-apps" element={<LegalAppList />} />
             <Route path="legal-apps/create" element={<LegalAppCreate />} />
@@ -304,10 +274,6 @@ const AdminDashboard = () => {
             <Route path="legal-doc-records" element={<LegalDocRecordList />} />
             <Route path="legal-doc-records/create" element={<LegalDocRecordCreate />} />
             <Route path="legal-doc-records/:id/edit" element={<LegalDocRecordEdit />} />
-
-            <Route path="orders" element={<OrderList />} />
-            <Route path="orders/create" element={<OrderCreate />} />
-            <Route path="orders/:id/edit" element={<OrderEdit />} />
 
             <Route index element={<LegalAppList />} />
           </Routes>

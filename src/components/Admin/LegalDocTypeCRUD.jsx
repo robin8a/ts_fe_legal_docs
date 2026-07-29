@@ -5,10 +5,8 @@ import { Container, Button, Form, Row, Col, Table } from 'react-bootstrap'
 // Auth css custom
 // import Bootstrap from "../../common/themes"
 // GraphQL
-import { API, graphqlOperation } from 'aws-amplify'
-import { listLegalDocTypes } from '../../graphql/queries'
-import { createLegalDocType, updateLegalDocType } from '../../graphql/mutations'
-// import { onCreateLegalDocType, onUpdateLegalDocType } from '../../graphql/subscriptions'
+import { listLegalDocTypes, createLegalDocType, updateLegalDocType } from '../../graphql_custom'
+// import { onCreateLegalDocType, onUpdateLegalDocType } from '../../graphql_custom/subscriptions'
 
 class LegalDocTypeCRUD extends Component {
 

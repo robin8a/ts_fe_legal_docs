@@ -1,16 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Card, Form, Button, Alert } from 'react-bootstrap';
-import { useNavigate, useParams } from 'react-router-dom';
+import { Form, Button, Alert, Spinner } from 'react-bootstrap';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import { graphqlQuery, graphqlMutation } from '../../../utils/graphqlClient';
-import { getLegalApp } from '../../../graphql/queries';
-import { updateLegalApp } from '../../../graphql/mutations';
+import { getLegalApp, updateLegalApp } from '../../../graphql_custom';
+import { IconArrowLeft } from '../icons/AdminIcons';
 
 const LegalAppEdit = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const [formData, setFormData] = useState({
-    name: '',
-  });
+  const [formData, setFormData] = useState({ name: '' });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [loadingData, setLoadingData] = useState(true);
@@ -23,9 +21,7 @@ const LegalAppEdit = () => {
     try {
       const result = await graphqlQuery(getLegalApp, { id });
       const app = result.data.getLegalApp;
-      setFormData({
-        name: app.name || '',
-      });
+      setFormData({ name: app.name || '' });
       setLoadingData(false);
     } catch (err) {
       console.error('Error loading legal app:', err);
@@ -35,10 +31,7 @@ const LegalAppEdit = () => {
   };
 
   const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
+    setFormData({ ...formData, [e.target.name]: e.target.value });
     setError('');
   };
 
@@ -49,10 +42,7 @@ const LegalAppEdit = () => {
 
     try {
       await graphqlMutation(updateLegalApp, {
-        input: {
-          id,
-          ...formData,
-        },
+        input: { id, ...formData },
       });
       navigate('/admin/legal-apps');
     } catch (err) {
@@ -63,46 +53,61 @@ const LegalAppEdit = () => {
   };
 
   if (loadingData) {
-    return <Container className="mt-4">Loading...</Container>;
+    return (
+      <div className="d-flex justify-content-center align-items-center py-5" role="status">
+        <Spinner animation="border" />
+        <span className="visually-hidden">Cargando…</span>
+      </div>
+    );
   }
 
   return (
-    <Container className="mt-4">
-      <Card>
-        <Card.Header>
-          <h3>Edit Legal App</h3>
-        </Card.Header>
-        <Card.Body>
-          {error && <Alert variant="danger">{error}</Alert>}
-          <Form onSubmit={handleSubmit}>
-            <Form.Group className="mb-3">
-              <Form.Label>Name *</Form.Label>
+    <div className="admin-form-page">
+      <Link to="/admin/legal-apps" className="admin-back-link">
+        <IconArrowLeft />
+        Volver a aplicaciones legales
+      </Link>
+
+      <h1 className="admin-page-title">Editar aplicación legal</h1>
+      <p className="admin-page-desc">Actualiza el nombre del espacio de trabajo.</p>
+
+      {error ? <Alert variant="danger" className="mt-3">{error}</Alert> : null}
+
+      <Form className="mt-4" onSubmit={handleSubmit} noValidate>
+        <div className="admin-form-card">
+          <div className="admin-form-card-body admin-form-control-like">
+            <Form.Group className="mb-0" controlId="legal-app-name">
+              <Form.Label className="small fw-medium text-body-secondary">Nombre *</Form.Label>
               <Form.Control
                 type="text"
                 name="name"
                 value={formData.name}
                 onChange={handleChange}
                 required
-                placeholder="Enter legal app name"
+                placeholder="Nombre de la aplicación"
               />
             </Form.Group>
+          </div>
 
-            <Button variant="primary" type="submit" disabled={loading}>
-              {loading ? 'Updating...' : 'Update'}
+          <div className="admin-form-card-footer">
+            <Button type="button" variant="outline-secondary" onClick={() => navigate('/admin/legal-apps')}>
+              Cancelar
             </Button>
-            <Button
-              variant="secondary"
-              className="ms-2"
-              onClick={() => navigate('/admin/legal-apps')}
-            >
-              Cancel
+            <Button type="submit" variant="dark" className="shadow-sm" disabled={loading}>
+              {loading ? (
+                <>
+                  <Spinner animation="border" size="sm" className="me-2" aria-hidden />
+                  Guardando…
+                </>
+              ) : (
+                'Guardar cambios'
+              )}
             </Button>
-          </Form>
-        </Card.Body>
-      </Card>
-    </Container>
+          </div>
+        </div>
+      </Form>
+    </div>
   );
 };
 
 export default LegalAppEdit;
-
