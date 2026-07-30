@@ -1,5 +1,4 @@
 import { defineData } from '@aws-amplify/backend';
-import type { Backend } from '../backend';
 
 const schema = `# This "input" configures a global authorization rule to enable public access to
 # all models in this schema. Learn more about authorization rules here: https://docs.amplify.aws/cli/graphql/authorization-rules

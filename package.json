@@ -31,8 +31,10 @@
   "scripts": {
     "prebuild": "node -e \"const fs=require('fs'); if(!fs.existsSync('amplify_outputs.json')){console.error('Missing amplify_outputs.json at project root'); process.exit(1)} fs.copyFileSync('amplify_outputs.json','src/amplify_outputs.json')\"",
     "prestart": "node -e \"const fs=require('fs'); if(fs.existsSync('amplify_outputs.json')) fs.copyFileSync('amplify_outputs.json','src/amplify_outputs.json')\"",
+    "predev": "node -e \"const fs=require('fs'); if(fs.existsSync('amplify_outputs.json')) fs.copyFileSync('amplify_outputs.json','src/amplify_outputs.json')\"",
     "start": "react-scripts start",
     "dev": "react-scripts start",
+    "sandbox": "npx ampx sandbox",
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
