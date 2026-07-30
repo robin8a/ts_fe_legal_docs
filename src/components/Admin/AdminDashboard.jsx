@@ -125,6 +125,32 @@ const AdminDashboard = () => {
   const meta = SECTION_META[section] || SECTION_META['legal-apps'];
   const hideCta = shouldHideCreateCta(pathname);
 
+  const handleLogout = () => {
+    logout();
+    navigate('/login', { replace: true });
+  };
+
+  const renderUserFooter = () => (
+    <div className="admin-sidebar-footer">
+      <div className="admin-sidebar-footer-avatar" aria-hidden="true">
+        {(user?.displayName || 'AD').slice(0, 2).toUpperCase()}
+      </div>
+      <div className="min-w-0 flex-grow-1">
+        <div className="small fw-medium text-truncate">{user?.displayName || 'Administrador'}</div>
+        <div className="text-muted small text-truncate">{user?.username || 'administrador'}</div>
+      </div>
+      <button
+        type="button"
+        className="admin-icon-btn admin-logout-btn"
+        onClick={handleLogout}
+        aria-label="Cerrar sesión"
+        title="Cerrar sesión"
+      >
+        <IconLogOut />
+      </button>
+    </div>
+  );
+
   const renderNavLinks = () =>
     navItems.map(({ to, label, match, Icon }) => (
       <Link
@@ -150,15 +176,7 @@ const AdminDashboard = () => {
           <span className="admin-sidebar-brand-title">Legal Docs Admin</span>
         </Link>
         <nav className="admin-sidebar-nav">{renderNavLinks()}</nav>
-        <div className="admin-sidebar-footer">
-          <div className="admin-sidebar-footer-avatar" aria-hidden="true">
-            AD
-          </div>
-          <div className="min-w-0">
-            <div className="small fw-medium text-truncate">Admin User</div>
-            <div className="text-muted small">admin@legaldocs.io</div>
-          </div>
-        </div>
+        {renderUserFooter()}
         <div className="admin-sidebar-version" aria-label={`App version ${DISPLAY_VERSION}`}>
           v{DISPLAY_VERSION}
         </div>
@@ -182,15 +200,7 @@ const AdminDashboard = () => {
           <nav className="admin-sidebar-nav flex-grow-1" aria-label="Principal móvil">
             {renderNavLinks()}
           </nav>
-          <div className="admin-sidebar-footer border-0 pt-3 mt-2">
-            <div className="admin-sidebar-footer-avatar" aria-hidden="true">
-              AD
-            </div>
-            <div className="min-w-0">
-              <div className="small fw-medium text-truncate">Admin User</div>
-              <div className="text-muted small">admin@legaldocs.io</div>
-            </div>
-          </div>
+          <div className="border-0 pt-3 mt-2">{renderUserFooter()}</div>
           <div className="admin-sidebar-version" aria-label={`App version ${DISPLAY_VERSION}`}>
             v{DISPLAY_VERSION}
           </div>

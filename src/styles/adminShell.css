@@ -1310,3 +1310,17 @@
   letter-spacing: 0.04em;
   opacity: 0.8;
 }
+
+.admin-logout-btn {
+  color: var(--admin-sidebar-muted) !important;
+  flex-shrink: 0;
+}
+
+.admin-logout-btn:hover {
+  color: #fff !important;
+  background: rgba(255, 255, 255, 0.12) !important;
+}
+
+.admin-offcanvas-nav .admin-logout-btn:hover {
+  color: #fff !important;
+}
