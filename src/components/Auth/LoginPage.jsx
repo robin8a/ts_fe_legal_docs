@@ -48,10 +48,10 @@ const LoginPage = () => {
             <IconScale size={28} />
           </span>
           <p className="login-banner-eyebrow">Legal Docs Admin</p>
-          <h1 className="login-banner-title">Panel de administración</h1>
+          <h1 className="login-banner-title">Bienvenido a Legal Docs</h1>
           <p className="login-banner-copy">
-            Acceso restringido. Solo el administrador autorizado puede entrar a la vista
-            principal.
+            Inicia sesión para gestionar documentos, usuarios y el espacio de cumplimiento
+            desde un solo lugar.
           </p>
         </div>
       </div>
@@ -68,9 +68,9 @@ const LoginPage = () => {
             </div>
           </div>
 
-          <h2 className="login-panel-heading">Bienvenido</h2>
+          <h2 className="login-panel-heading">Inicia sesión</h2>
           <p className="login-panel-desc text-muted">
-            Introduce tus credenciales de administrador para continuar.
+            Usa tu usuario de administrador para continuar.
           </p>
 
           {error ? (
